@@ -20,16 +20,19 @@ typedef int	t_bool;
 
 # define TRUE 1
 # define FALSE 0
+typedef struct s_array_list t_array_list;
+
 // Todo: implement iterator  and create a repo for this not copying everytime 
 typedef struct s_array_iterator{
-		int next;
+		int next_index;
 		t_array_list *list;
 
 		void *(*next)(struct s_array_iterator *this);
+		void *(*do_on_next)(struct s_array_iterator *this, void *(*f)(void *item));
 		void (*free)(struct s_array_iterator *this, void (*free)(void *));
-}t_array_iterator;
+}			t_array_iterator;
 
-typedef struct s_array_list{
+ struct s_array_list{
 	void					**arr;
 	size_t					index;
 	size_t					length;
@@ -68,7 +71,7 @@ typedef struct s_array_list{
 			t_bool	(*cond)(void *item), void *(*map)(void *item));
 	struct	s_array_list	*(*clone)(struct s_array_list *this,
 			t_bool is_not_primitive, void *(*__clone)(void *item));
-}	t_array_list;
+}	;
 
 t_array_list	*new_array_list(t_array_list *this,
 					size_t first_size, size_t sizeofit);
@@ -98,4 +101,10 @@ t_array_list	*clone(t_array_list *this, t_bool is_not_primitive,
 					void *(*__clone)(void *item));
 t_bool			push_clone(t_array_list *this, t_array_list original,
 					t_bool is_not_primitive, void *(*__clone)(void *item));
+
+t_array_iterator *array_list_to_iterator(t_array_list *this);
+t_array_iterator *new_iterator(t_array_list *list);
+void *iterator_next(t_array_iterator *this);
+void *iterator_do_on_next(t_array_iterator *this, void *(*f)(void *));
+void iterator_free(t_array_iterator *this, void (*free)(void *));
 #endif

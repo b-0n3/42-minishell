@@ -26,6 +26,7 @@ t_array_list	*new_array_list(
 	if (this->arr == NULL)
 		return (NULL);
 	this->index = 0;
+	this->iterator = &array_list_to_iterator;
 	this->length = first_size;
 	this->size_of_object = sizeofit;
 	this->push = &push;
