@@ -16,7 +16,7 @@ int  push_somthing_here(t_array_list *list, int argc , char **argv)
 void *print_item(void *item)
 {
     printf("item : %s\n", (char*) item);
-    return item;
+    return (void *)"hello";
 }
 
 int main(int  argc , char **argv)
@@ -36,6 +36,11 @@ int main(int  argc , char **argv)
 
     void *first = iterator->next(iterator);
     printf("first item : %s\n", (char *) first);
-    while (iterator->do_on_next(iterator, &print_item) != NULL);
+    while (iterator->has_next(iterator))
+        iterator->do_on_next(iterator, &print_item);
+
+    iterator->reset(iterator);
+     while (iterator->has_next(iterator))
+        iterator->do_on_next(iterator, &print_item);
     exit(1);
 }

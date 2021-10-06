@@ -16,6 +16,7 @@
 # include <stdio.h>
 # include <stdlib.h>
 
+
 typedef int	t_bool;
 
 # define TRUE 1
@@ -24,9 +25,10 @@ typedef struct s_array_list t_array_list;
 
 // Todo: implement iterator  and create a repo for this not copying everytime 
 typedef struct s_array_iterator{
-		int next_index;
+		size_t next_index;
 		t_array_list *list;
-
+		t_bool	(*has_next)(struct s_array_iterator *this);
+		void (*reset)(struct s_array_iterator *);
 		void *(*next)(struct s_array_iterator *this);
 		void *(*do_on_next)(struct s_array_iterator *this, void *(*f)(void *item));
 		void (*free)(struct s_array_iterator *this, void (*free)(void *));
@@ -101,7 +103,8 @@ t_array_list	*clone(t_array_list *this, t_bool is_not_primitive,
 					void *(*__clone)(void *item));
 t_bool			push_clone(t_array_list *this, t_array_list original,
 					t_bool is_not_primitive, void *(*__clone)(void *item));
-
+t_bool	iterator_has_next(t_array_iterator *this);
+void iterator_reset(t_array_iterator *this);
 t_array_iterator *array_list_to_iterator(t_array_list *this);
 t_array_iterator *new_iterator(t_array_list *list);
 void *iterator_next(t_array_iterator *this);

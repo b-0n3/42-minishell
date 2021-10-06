@@ -2,14 +2,11 @@
 #define TOKEN_H
 #include "../lib/arraylist/includes/array_list.h"
 
-typedef enum {
-    echo,
-    ls,
-    _export,
-    external
-} command_types;
 
-// example  cat -a hell.js | grep hello  > hell.js
+// example 
+
+ "cat" $s -a hell.js > ls |grep hello
+  word word word word operator word pipe word word 
 
 /**
  *{
@@ -49,12 +46,37 @@ typedef enum {
  * }
  * */
 
+typedef enum {
+    enternal,
+    external
+} t_command_type;
+
+typedef enum {
+    _command,
+    _args
+} token_type;
+
+typedef enum {
+    _pwd,
+    _cd, 
+    _echo,
+    _export,
+    _unset,
+    _env,
+    _exit,
+    none
+} t_internal_command;
+
 typedef struct token{
     int             order;
-    command_types   type;
+    t_command_type   type;
+    token_type       token_type;
+    t_internal_command  internal_c;
+    char            *output;
     t_array_list    args;
     char            *token;
-
+    pid_t           pid;
+    t_array_list    fds;
 };
 
 #endif
