@@ -21,7 +21,18 @@ typedef int	t_bool;
 
 # define TRUE 1
 # define FALSE 0
+typedef char * t_string;
 typedef struct s_array_list t_array_list;
+
+/**
+ * @To_string the f function must write item like this "key":"value"
+ */
+typedef struct s_key_map{
+    t_string key;
+    void *value;
+    void (*to_string)(struct s_key_map *this, void (*f)(void *item));
+}   t_key_map;
+
 
 // Todo: implement iterator  and create a repo for this not copying everytime 
 typedef struct s_array_iterator{
@@ -31,13 +42,16 @@ typedef struct s_array_iterator{
 		void (*reset)(struct s_array_iterator *);
 		void *(*next)(struct s_array_iterator *this);
 		void *(*do_on_next)(struct s_array_iterator *this, void *(*f)(void *item));
-		void (*free)(struct s_array_iterator *this, void (*free)(void *));
+        void *(*do_on_next_p)(struct s_array_iterator *this, void *(*f)(void *, void *), void *p_item);
+        void (*free)(struct s_array_iterator *this, void (*free)(void *));
+
 }			t_array_iterator;
 
  struct s_array_list{
 	void					**arr;
 	size_t					index;
 	size_t					length;
+    t_bool                  is_map;
 	size_t					size_of_object;
 
 	t_array_iterator *(*iterator)(struct s_array_list *this);
@@ -73,6 +87,7 @@ typedef struct s_array_iterator{
 			t_bool	(*cond)(void *item), void *(*map)(void *item));
 	struct	s_array_list	*(*clone)(struct s_array_list *this,
 			t_bool is_not_primitive, void *(*__clone)(void *item));
+    void *(*find_by_key)(struct s_array_list this, t_string  key);
 }	;
 
 t_array_list	*new_array_list(t_array_list *this,
@@ -110,4 +125,7 @@ t_array_iterator *new_iterator(t_array_list *list);
 void *iterator_next(t_array_iterator *this);
 void *iterator_do_on_next(t_array_iterator *this, void *(*f)(void *));
 void iterator_free(t_array_iterator *this, void (*free)(void *));
+void *find_by_key(t_array_list  this, t_string key);
+void *iterator_do_on_next_p(t_array_iterator *this, void *(*f)(void *, void *), void *p_item);
+
 #endif

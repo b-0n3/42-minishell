@@ -46,5 +46,27 @@ t_array_list	*new_array_list(
 	this->filter = &filter_list;
 	this->clone = &clone;
 	this->push_clone = &push_clone;
+    this->find_by_key = &find_by_key;
 	return (this);
 }
+
+
+void *find_by_key(t_array_list  this, char *key) {
+    t_key_map *item;
+    int i;
+    i = 0;
+    if (this.is_map)
+    {
+        item =(t_key_map *) this.get(&this, i);
+        while (item != NULL)
+        {
+            if (!strcmp(key, (const char *)item->key) )
+                return (item->value);
+            i++;
+            item =(t_key_map *) this.get(&this, i);
+        }
+
+    }
+    return (NULL);
+}
+
