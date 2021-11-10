@@ -10,12 +10,15 @@ typedef struct s_shell
     t_bool       fresh;
     char         *commmand;
     t_array_list *tokens;
+    size_t command_len;
     t_array_list  *nodes;
     size_t      l_cursor;
     size_t     cursor;
     t_bool     dqout;
     t_bool     quot;
+    t_bool (*unclosed)(struct s_shell *this);
     void (*init)(struct  s_shell *this, t_string line);
+    t_bool (*has_next_token)(struct s_shell *this);
     void (*loop)(struct s_shell *this);
     t_token *(*get_next_token)(struct s_shell *this);
     void (*parse)(struct s_shell *this);
@@ -28,7 +31,8 @@ void shell_loop(t_shell *this);
 t_token *shell_get_next_token(t_shell *this);
 void shell_parse( t_shell *this);
 void shell_free(t_shell *this);
-
+t_bool has_next_token(t_shell *this);
+t_bool shell_quot_unclosed(t_shell *this);
 // cat f1 |  grep line >>  f1
 
 /**
