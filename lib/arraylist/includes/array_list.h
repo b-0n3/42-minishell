@@ -43,6 +43,7 @@ typedef struct s_array_iterator{
 		void *(*next)(struct s_array_iterator *this);
 		void *(*do_on_next)(struct s_array_iterator *this, void *(*f)(void *item));
         void *(*do_on_next_p)(struct s_array_iterator *this, void *(*f)(void *, void *), void *p_item);
+        void *(*do_on_next_p_)(struct s_array_iterator *this, void *(*f)(void *, void *, void *), void *);
         void (*free)(struct s_array_iterator *this, void (*free)(void *));
 
 }			t_array_iterator;
@@ -127,5 +128,6 @@ void *iterator_do_on_next(t_array_iterator *this, void *(*f)(void *));
 void iterator_free(t_array_iterator *this, void (*free)(void *));
 void *find_by_key(t_array_list  this, t_string key);
 void *iterator_do_on_next_p(t_array_iterator *this, void *(*f)(void *, void *), void *p_item);
+void *do_on_next_p_(t_array_iterator *this, void *(*f)(void *, void *, void *), void *p_item);
 
 #endif

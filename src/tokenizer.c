@@ -9,6 +9,9 @@ t_token  *new_token(t_string value, t_token_type type)
         return  NULL;
     token->value = value;
     token->type =type;
+    token->to_node = &token_to_node;
+    token->free = &token_free;
+    token->to_file = &token_to_file;
     return (token);
 }
 
@@ -141,11 +144,19 @@ t_bool check_unclosed(t_shell *this)
     }
     return  (FALSE);
 }
+void token_free(t_token *this)
+{
+    if (this != NULL)
+    {
+        free(this->value);
+        free(this);
+    }
+}
 // sadf'  ' asdf'
 //             ^
 /*
  * todo : fix space after quotes
-    @return a token if found or null in case of error or find unclosed quot
+   * @return a token if found or null in case of error or find unclosed quot
  * */
 t_token *shell_get_next_token(t_shell *this)
 {

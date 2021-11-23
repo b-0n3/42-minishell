@@ -1,4 +1,4 @@
-#include "array_list.h"
+    #include "array_list.h"
 
 t_array_iterator *new_iterator(t_array_list *list)
 {
@@ -14,6 +14,7 @@ t_array_iterator *new_iterator(t_array_list *list)
     it->do_on_next = &iterator_do_on_next;
     it->next = &iterator_next;
     it->do_on_next_p = &iterator_do_on_next_p;
+    it->do_on_next_p_ = &do_on_next_p_;
     it->next_index = 0;
     it->reset = &iterator_reset;
     it->free = &iterator_free;
@@ -55,6 +56,17 @@ void *iterator_do_on_next(t_array_iterator *this, void *(*f)(void *))
     }
     return ptr;
 }
+void *do_on_next_p_(t_array_iterator *this, void *(*f)(void *, void *, void *), void *p_item)
+{
+    void *ptr;
+
+    ptr = NULL;
+    if (this != NULL)
+    {
+        ptr = f(this->next(this), p_item ,this->list->get(this->list, this->next_index ));
+    }
+    return ptr;
+}
 
 void *iterator_do_on_next_p(t_array_iterator *this, void *(*f)(void *, void *), void *p_item)
 {
@@ -66,8 +78,8 @@ void *iterator_do_on_next_p(t_array_iterator *this, void *(*f)(void *, void *), 
         ptr = this->next(this);
         if (ptr == NULL)
             return NULL;
-        ptr = f(ptr, p_item);
-        this->list->update_at(this->list, ptr, this->next_index - 1);
+       ptr = f(ptr, p_item);
+     //   this->list->update_at(this->list, ptr, this->next_index - 1);
     }
     return ptr;
 }

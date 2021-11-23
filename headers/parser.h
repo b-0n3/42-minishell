@@ -84,6 +84,6 @@ t_bool shell_quot_unclosed(t_shell *this);
   ]
 }
  * */
-
-
+// t_node  *token_to_node(t_token *this, t_node *previous, t_token *next);
+ t_node  *token_to_node(t_token *this);
  #endif

@@ -18,7 +18,7 @@ $(ARRAY_LIST):
 
 clean:
 	rm -rf *.o
-	make clean -C $(ARRAY_LIST_PATH)
+	make fclean -C $(ARRAY_LIST_PATH)
 
 array_list_re:
 	make re -C  $(ARRAY_LIST_PATH)
