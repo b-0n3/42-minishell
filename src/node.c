@@ -235,8 +235,8 @@ t_node  *new_node()
 
     new->command_type = c_none;
     new->i_c_type =i_c_none;
-    new->word_type= w_t_none;
-    new->op_type =o_t_none;
+    new->word_type = w_t_none;
+    new->op_type = o_t_none;
     new->input_file = NULL;
     new->output_file = NULL;
     new->left = NULL;

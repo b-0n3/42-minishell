@@ -152,8 +152,8 @@ void token_free(t_token *this)
         free(this);
     }
 }
-// sadf'  ' asdf'
-//             ^
+// cat herll | dsf  > dsf  <<ff
+//   ^         ^
 /*
  * todo : fix space after quotes
    * @return a token if found or null in case of error or find unclosed quot

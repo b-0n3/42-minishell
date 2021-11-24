@@ -149,69 +149,101 @@ t_node *token_to_node(t_token *this)
     return node;
 }
 
-void shell_parse(t_shell *this) {
-        t_token *token;
-        t_node *head = NULL;
-        t_node  *com;
-        t_node  *operator;
-        while (this->has_next_token(this))
+t_node  *handle_operator(t_shell  *this, t_token  *token, t_node *head)
+{
+    t_node  *operator;
+    if (token == NULL)
+        return head;
+    operator = new_node();
+    operator->op_type = find_operation_type(token->value);
+    operator->value = strdup(token->value);
+    if(head != NULL)
+    {
+        if (operator->op_type == pipeline && head->op_type != pipeline)
+        {
+            head->parent = operator;
+            operator->left = head;
+            head = operator;
+        }
+        else if (operator->op_type == pipeline)
+        {
+            head->parent = operator;
+           operator->left = head;
+        }
+        else
+        {
+            operator->parent = head;
+            operator->left = head->right;
+            if (operator->left != NULL)
+                operator->left->parent = operator;
+            head->right = operator;
+        }
+    }
+    else
+        head = operator;
+    return head;
+}
+
+t_node *handle_word(t_shell *this, t_token *token ,t_node *head)
+{
+    t_node *com;
+
+    if (head == NULL || (head->op_type == pipeline  && head->right != NULL))
+    {
+        com = new_node();
+        com->word_type = command;
+        com->value = strdup(token->value);
+        if (head != NULL) {
+            if(head->left != NULL)
+                 head->left = com;
+            else
+                head->right = com;
+            com->parent = head;
+        }
+        else
+            head = com;
+        token->free(token);
+        while(1)
         {
             token = pre_get_next_token(this);
-            if (token == NULL && this->has_next_token(this))
-                node_free(head);
-            if (token->type == word && (head == NULL || head->op_type == pipeline)) {
-                com = token->to_node(token);
-                com->word_type = command;
-                    while (1)
-                    {
-                        token = pre_get_next_token(this);
-                        if (token->type != word || token == NULL)
-                            break;
-                        com->args.push(&com->args, token, sizeof (t_token));
-                    }
-                    if (head == NULL)
-                        head = com;
-                    else {
-                        head->left = com;
-                        com->parent = head;
-                    }
-            }
-            if (token->type == op)
-            {
-                operator = token->to_node(token);
-                if (operator->op_type == pipeline)
-                {
-                    operator->left = head;
-                    head->parent = operator;
-                    head = operator;
-                    continue;
-                }else{
-                    token->free(token);
-                    token = pre_get_next_token(this);
-                    if (operator->op_type == redirection || operator->op_type == append)
-                        operator->output_file = token->to_file(token);
-                    else if (operator->op_type == heredoc)
-                        operator->output_file = new_file("/tmp/b0n3_heredoc");
-                    else
-                        operator->input_file = token->to_file(token);
-                    if (head->op_type == pipeline)
-                    {
-                        head->right = operator;
-                        operator->parent = head;
-                        continue;
-                    }else
-                    {
-
-                        operator->left = head;
-                        head->parent = operator;
-                        head = operator;
-                        continue;
-                    }
-                }
-
-            }
-
+            if (token == NULL || token->type != word)
+                return handle_operator(this, token, head);
+            com->args.push(&com->args, token , sizeof(t_token));
         }
+    }
+    else if (head->need_a_file(head) || (head->right != NULL  && head->right->need_a_file(head->right)))
+    {
+        com = head->right != NULL ? head->right : head;
+        if (com->op_type == redirection || com->op_type == append)
+            com->output_file = token->to_file(token);
+        else if (com->op_type == heredoc)
+            com->output_file = new_file("/tmp/b0n3_heredoc");
+        else
+            com->input_file = token->to_file(token);
+    }
+    return head;
+}
+
+
+void shell_parse(t_shell *this) {
+    t_token *token;
+    t_node *head;
+
+    head = NULL;
+    while (this->has_next_token(this))
+    {
+        token = pre_get_next_token(this);
+        if (token == NULL && this->has_next_token(this))
+        {
+            node_free(head);
+            head = NULL;
+            continue;
+        }
+        if (token->type == word)
+            head = handle_word(this, token, head);
+        else
+            head = handle_operator(this , token, head);
+    }
     print_node(head);
 }
 
