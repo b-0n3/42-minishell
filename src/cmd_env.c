@@ -39,12 +39,18 @@ void	cmd_unset(t_shell shell,t_string key)
 			if (!strcmp(key, (const char *)item->key) )
 			{
 				this.pop_i(&this,i);
-				return (1);
 			}
 			i++;
 			item =(t_key_map *) this.get(&this, i);
 		}
 
 	}
-	return (NULL);	
+}
+
+void	export(t_shell this, t_node node)
+{
+	t_array_iterator *iterator;
+
+	iterator = node.args.iterator(&node.args);
+	this.env.push(&this, env_to_key_map(iterator), sizeof(t_key_map *));
 }
