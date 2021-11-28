@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   array_list.h                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aait-ham <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: am-khant <am-khant@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/02/09 19:37:51 by aait-ham          #+#    #+#             */
-/*   Updated: 2021/07/11 19:08:06 by aait-ham         ###   ########.fr       */
+/*   Updated: 2021/11/28 11:07:50 by am-khant         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,6 +89,7 @@ typedef struct s_array_iterator{
 	struct	s_array_list	*(*clone)(struct s_array_list *this,
 			t_bool is_not_primitive, void *(*__clone)(void *item));
     void *(*find_by_key)(struct s_array_list this, t_string  key);
+    void *(*rmplc_by_key)(struct s_array_list this, t_string key, char *v, size_t l);
 }	;
 
 t_array_list	*new_array_list(t_array_list *this,
@@ -127,6 +128,7 @@ void *iterator_next(t_array_iterator *this);
 void *iterator_do_on_next(t_array_iterator *this, void *(*f)(void *));
 void iterator_free(t_array_iterator *this, void (*free)(void *));
 void *find_by_key(t_array_list  this, t_string key);
+void *rmplc_by_key(t_array_list  this, t_string key,char *v,size_t l);
 void *iterator_do_on_next_p(t_array_iterator *this, void *(*f)(void *, void *), void *p_item);
 void *do_on_next_p_(t_array_iterator *this, void *(*f)(void *, void *, void *), void *p_item);
 

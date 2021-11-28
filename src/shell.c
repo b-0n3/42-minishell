@@ -305,13 +305,13 @@ void shell_loop(t_shell *this)
 {
     t_string line;
 
-    line = readline("IM->B0N3$>");
+    line = readline("$>");
     while (line != NULL && strcmp(line,  "exit") != 0)
     {
         this->init(this, line);
         this->parse(this);
         // execute command
-        line = readline("IM->B0N3$>");
+        line = readline("$>");
     }
 }
 

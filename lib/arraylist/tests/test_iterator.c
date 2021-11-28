@@ -1,4 +1,4 @@
-#include "array_list.h" 
+#include "../includes/array_list.h" 
 int  push_somthing_here(t_array_list *list, int argc , char **argv)
 {
     int i;
@@ -35,12 +35,13 @@ int main(int  argc , char **argv)
     }
 
     void *first = iterator->next(iterator);
-    printf("first item : %s\n", (char *) first);
+    printf("first item : %s %d\n", (char *) first,list.size_of_object);
+
     while (iterator->has_next(iterator))
         iterator->do_on_next(iterator, &print_item);
 
-    iterator->reset(iterator);
-     while (iterator->has_next(iterator))
-        iterator->do_on_next(iterator, &print_item);
+    // iterator->reset(iterator);
+    //  while (iterator->has_next(iterator))
+    //     iterator->do_on_next(iterator, &print_item);
     exit(1);
 }

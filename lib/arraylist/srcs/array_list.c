@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   array_list.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aait-ham <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: am-khant <am-khant@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/02/09 19:37:36 by aait-ham          #+#    #+#             */
-/*   Updated: 2021/07/11 19:09:45 by aait-ham         ###   ########.fr       */
+/*   Updated: 2021/11/28 13:43:35 by am-khant         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,6 +47,7 @@ t_array_list	*new_array_list(
 	this->clone = &clone;
 	this->push_clone = &push_clone;
     this->find_by_key = &find_by_key;
+    this->rmplc_by_key = &rmplc_by_key;
 	return (this);
 }
 
@@ -70,3 +71,25 @@ void *find_by_key(t_array_list  this, char *key) {
     return (NULL);
 }
 
+void *rmplc_by_key(t_array_list  this, t_string key, char *v, size_t l) {
+    t_key_map *item;
+    int i;
+    i = 0;
+    if (this.is_map)
+    {
+        item =(t_key_map *) this.get(&this, i);
+        while (item != NULL)
+        {
+            if (!strcmp(key, (const char *)item->key) )
+			{
+				this.pop_i(&this,i);
+				this.push(&this,v,l);
+                return (item->value);
+			}
+            i++;
+            item =(t_key_map *) this.get(&this, i);
+        }
+
+    }
+    return (NULL);
+}

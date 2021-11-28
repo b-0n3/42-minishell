@@ -17,8 +17,8 @@ void print_map(void *item) {
 
     if (item != NULL) {
         m = (t_key_map *) item;
-        printf("{\n\"key\":\"%s\",\n \"value\":\"%s\"\n}", m->key, (char *) m->value);
-    }
+		printf("{\n\"key\":\"%s\",\n \"value\":\"%s\"\n}", m->key, (char *) m->value);
+	}
 }
 // catt hello | cd ..  | pwd > file
 //     ^

@@ -102,7 +102,7 @@ struct s_node
 {
     t_string value;
     t_array_list  args;
-    t_node          *parent;
+    t_node         *parent;
     t_node         *right;
     t_node         *left;
     t_word_type  word_type;
