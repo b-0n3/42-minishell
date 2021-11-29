@@ -79,7 +79,18 @@ typedef enum e_command_type{
  */
 
  typedef  struct s_node t_node;
-
+typedef  struct s_env_ext{
+    int l_cursor;
+    int cursor;
+    int dq;
+    int q;
+    size_t length;
+    int expand;
+    t_string cmd;
+    t_array_list  *env;
+    t_string (*next)(struct s_env_ext *this);
+    t_bool  (*has_next)(struct s_env_ext *this);
+} t_env_ext;
 
 typedef struct s_file{
         t_string  name;
@@ -92,10 +103,11 @@ typedef struct s_file{
 typedef struct s_token{
     t_string value;
     t_token_type type;
-
+    char    start_with;
+    struct s_token *(*expand)(struct s_token *this, t_array_list env);
     t_node *(*to_node)(struct  s_token *this);
     void (*to_string)(struct s_token *this);
-    t_file *(*to_file)(struct s_token *this);// todo: add pointer to this function
+    t_file *(*to_file)(struct s_token *this);
     void (*free)(struct s_token *this);
 }   t_token;
 struct s_node
@@ -105,6 +117,7 @@ struct s_node
     t_node          *parent;
     t_node         *right;
     t_node         *left;
+    t_string       eof;
     t_word_type  word_type;
     t_file        *input_file;
     t_file        *output_file;
@@ -122,7 +135,7 @@ t_file *new_file(t_string uri);
 t_token  *new_token(t_string value, t_token_type type);
 t_op_type find_operation_type(t_string value);
 void token_free(t_token *this);
-
+t_string ft_strjoin(t_string s1, t_string s2);
 //t_node  *to_node(t_token *this);
 t_node  *new_node();
 t_file  *token_to_file(t_token *this);
@@ -131,4 +144,7 @@ t_bool node_is_operation(t_node *this);
 t_bool node_need_a_file(t_node *this);
 void  node_free(t_node *this);
 void node_to_string(t_node *this);
+t_token  *token_expand_env(t_token *this, t_array_list env);
+void new_env_ext(t_env_ext *this,t_array_list  *env, char *cmd);
+t_bool  env_ext_has_next(t_env_ext *this);
 #endif

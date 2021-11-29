@@ -3,14 +3,19 @@
 t_token  *new_token(t_string value, t_token_type type)
 {
     t_token  *token;
-
+    int i = 0;
     token = malloc(sizeof(t_token));
     if(token == NULL)
         return  NULL;
+    while (value[i] != '\0' && value[i] == ' ')
+        i++;
+
     token->value = value;
     token->type =type;
+    token->start_with = value[i];
     token->to_node = &token_to_node;
     token->free = &token_free;
+    token->expand = &token_expand_env;
     token->to_file = &token_to_file;
     return (token);
 }
@@ -86,7 +91,7 @@ t_token *get_word(t_shell *this)
     }
 
     token = new_token(strndup(this->commmand + this->l_cursor,
-                             this->cursor - this->l_cursor ), word);
+                             this->cursor - this->l_cursor), word);
     while(this->commmand[this->cursor] == ' ')
         this->cursor++;
     this->l_cursor = this->cursor;
@@ -144,6 +149,7 @@ t_bool check_unclosed(t_shell *this)
     }
     return  (FALSE);
 }
+
 void token_free(t_token *this)
 {
     if (this != NULL)
@@ -151,6 +157,140 @@ void token_free(t_token *this)
         free(this->value);
         free(this);
     }
+}
+t_bool is_allowed_in_env(char ch)
+{
+    return ((ch >= 'a' && ch <= 'z')  ||
+            (ch >='A' && ch <= 'Z')  ||
+            (ch >='0' && ch <= '9')  ||
+            (ch == '_'));
+}
+
+t_string  cut_word(t_env_ext *this)
+{
+    return strndup(this->cmd + this->l_cursor,
+                   this->cursor - this->l_cursor);
+}
+
+t_bool is_digit(char ch)
+{
+    return (ch  >= '0' && ch <= '9');
+}
+t_string ft_strjoin(t_string s1, t_string s2)
+{
+    t_string result;
+    if (s1 == NULL)
+        return s2;
+    if (s2 == NULL)
+        return s1;
+    result = calloc(strlen(s1) + strlen(s2) +1, 1);
+    memcpy(result, s1, strlen(s1));
+    memcpy(result + strlen(s1), s2, strlen(s2));
+    free(s1);
+    return result;
+
+}
+t_bool  env_ext_has_next(t_env_ext *this)
+{
+    return (this->cursor < this->length);
+}
+
+// asdf"sdaf$HOME'sdf'_$USER_$HOME"
+t_string env_ext_next(t_env_ext *this)
+{
+    int i;
+    char *env;
+    char *value;
+
+    i =0;
+    if (this->cursor  == this->length && this->l_cursor < this->cursor)
+        return strndup(this->cmd + this->l_cursor, this->cursor - this->l_cursor);
+    if (this->l_cursor > this->cursor || this->cursor >= this->length)
+        return NULL;
+    if (this->cmd[this->cursor] =='\"' && !this->q) {
+        this->dq = !this->dq;
+        if (this->l_cursor  < this->cursor) {
+
+            value =strndup(this->cmd + this->l_cursor, this->cursor - this->l_cursor);
+            this->l_cursor = this->cursor;
+            this->cursor++;
+            return value;
+        }
+        this->cursor++;
+        this->l_cursor = this->cursor;
+        }
+    if (this->cmd[this->cursor] == '\'' && !this->dq)
+    {
+        this->q = !this->q;
+        this->expand = !this->expand;
+        if (this->l_cursor  < this->cursor) {
+            value = strndup(this->cmd + this->l_cursor, this->cursor - this->l_cursor);
+            this->l_cursor = this->cursor;
+            this->cursor++;
+            return value;
+        }
+        this->cursor++;
+        this->l_cursor = this->cursor;
+    }
+    if (this->cmd[this->cursor] == '$' && this->expand && !is_digit(this->cmd[this->cursor + 1]))
+    {
+        i = this->cursor + 1;
+        while(this->cmd[i] != '\0'  && is_allowed_in_env(this->cmd[i]))
+            i++;
+        env = strndup(this->cmd + this->cursor + 1,  i - (this->cursor + 1 ) );
+        value = this->env->find_by_key(*this->env, env);
+        if (value == NULL)
+            value = strdup("");
+        free(env);
+        env = ft_strjoin( strndup(this->cmd + this->l_cursor, this->cursor - this->l_cursor), value);
+        this->cursor = i;
+        this->l_cursor = this->cursor;
+        return env;
+    }
+    else if (this->cmd[this->cursor] == '$')
+    {
+        value = strndup(this->cmd + this->l_cursor, this->cursor - this->l_cursor);
+        this->cursor +=2;
+        this->l_cursor= this->cursor;
+        return value;
+
+    }
+    this->cursor++;
+    return this->next(this);
+}
+
+void new_env_ext(t_env_ext *this,t_array_list  *env, char *cmd)
+{
+    this->env = env;
+    this->l_cursor = 0;
+    this->cursor = 0;
+    this->q=0;
+    this->length = strlen(cmd);
+    this->dq = 0;
+    this->expand = 1;
+    this->cmd = cmd;
+    this->has_next = &env_ext_has_next;
+    this->next = &env_ext_next;
+}
+
+t_token  *token_expand_env(t_token *this, t_array_list env)
+{
+    t_env_ext  env_ext;
+    t_string t;
+    t_string tmp;
+    new_env_ext(&env_ext, &env, this->value);
+    t = strdup("");
+    while (env_ext.has_next(&env_ext))
+    {
+        tmp = env_ext_next(&env_ext);
+        if (tmp!= NULL) {
+            t = ft_strjoin(t, tmp);
+        }
+
+    }
+    free(this->value);
+    this->value = t;
+    return this;
 }
 // cat herll | dsf  > dsf  <<ff
 //   ^         ^

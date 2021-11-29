@@ -15,7 +15,7 @@
 /*
  ***  @param first_size : array initial size
  ***  @param __sizeofit : sizeof element
- ***  @ param this :  ! please make sure the pointer you passing is already
+ ***  @ param this :  ! please make sure the given pointer  is already
  ***               allocated or expect a  bus error
  */
 

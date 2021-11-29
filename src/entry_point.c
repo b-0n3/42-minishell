@@ -25,12 +25,13 @@ void print_map(void *item) {
 
 int main(int argc, t_string *argv, t_string *env) {
     t_shell shell;
+    argc = 1;
+    argv = NULL;
     create_shell(&shell, env);
     shell.env.is_map = TRUE;
-//  shell.env.foreach(&shell.env, &print_map);
-    //  printf("%s\n", (char *)shell.env.find_by_key(shell.env, "HOMEBREW_TEMP"));
+
     shell.loop(&shell);
-    // parser.free(parser);
+
     system("leaks minishell");
 
 }
