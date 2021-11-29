@@ -27,8 +27,7 @@ int	editenv(t_shell this, char *dest_path, char *oldpath, t_plug con)
 	{
 		write(stderr,1, 1);
 		write(con.out, "cd: no such file or directory: ", 32);
-		write(con.out, (char *) this.env.find_by_key(this.env, "HOME"), 
-		sizeof((char *) this.env.find_by_key(this.env, "HOME")));
+		write(con.out, dest_path, sizeof(dest_path));
 		write(con.out, " \n", 3);
 		exit(1);
 	}
@@ -51,7 +50,7 @@ void	cmd_cd(t_shell this,t_node args, t_plug con)
 	{
 		getcwd(tmp,sizeof(tmp));
 		strcat(tmp,"/");
-		dest_path = strjoin(tmp, dest_path);
+		dest_path = strcat(tmp, dest_path);
 		if (checkdir(dest_path, con))
 			editenv(this, dest_path, oldpath, con);
 	}
@@ -61,9 +60,9 @@ void	cmd_cd(t_shell this,t_node args, t_plug con)
 
 void	cmd_pwd(t_shell this, t_plug con)
 {
-	char *tmp;
+	char tmp[MAXPATH];
 
-	tmp = (char *) this.env.find_by_key(this.env, "PWD");
+	getcwd(tmp,sizeof(tmp));
 	write(con.out,&tmp,strlen(tmp));
 	write(con.out,"\n",1);
 }
