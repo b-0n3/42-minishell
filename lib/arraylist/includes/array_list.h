@@ -6,7 +6,7 @@
 /*   By: am-khant <am-khant@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/02/09 19:37:51 by aait-ham          #+#    #+#             */
-/*   Updated: 2021/11/28 20:55:41 by am-khant         ###   ########.fr       */
+/*   Updated: 2021/11/29 10:41:35 by am-khant         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,7 @@ typedef struct s_key_map{
 // Todo: implement iterator  and create a repo for this not copying everytime 
 typedef struct s_array_iterator{
 		size_t next_index;
-		t_array_list *shelllist;
+		t_array_list *list;
 		t_bool	(*has_next)(struct s_array_iterator *this);
 		void (*reset)(struct s_array_iterator *);
 		void *(*next)(struct s_array_iterator *this);

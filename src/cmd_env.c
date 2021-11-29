@@ -1,7 +1,7 @@
 
 #include "minishell.h"
 
-void	cmd_env(t_shell this,int in, int out)
+void	cmd_env(t_shell this, t_plug con)
 {
 	size_t	i;
 	t_array_list *m;
@@ -14,10 +14,10 @@ void	cmd_env(t_shell this,int in, int out)
 		if (m->arr[i] != NULL)
 		{
 			sw = (t_key_map *) m->arr[i];
-			write(out,sw->key,sizeof(sw->key));
-			write(out,"=",1);
-			write(out,sw->value,sizeof(sw->value));
-			write(out,"\n",1);
+			write(con.out,sw->key,sizeof(sw->key));
+			write(con.out,"=",1);
+			write(con.out,sw->value,sizeof(sw->value));
+			write(con.out,"\n",1);
 		}
 		i++;
 	}
@@ -47,10 +47,11 @@ void	cmd_unset(t_shell shell,t_string key)
 	}
 }
 
-void	export(t_shell this, t_node node)
+void	cmd_export(t_shell this, t_node node)
 {
 	t_array_iterator *iterator;
 
 	iterator = node.args.iterator(&node.args);
 	this.env.push(&this, env_to_key_map(iterator), sizeof(t_key_map *));
 }
+

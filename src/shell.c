@@ -298,7 +298,6 @@ void print_node(t_node *node)
     printf("}");
     print_node(node->left);
     print_node(node->right);
-
 }
 
 void shell_loop(t_shell *this)
