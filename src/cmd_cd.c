@@ -13,18 +13,28 @@ int		checkdir(char *dirname, t_plug con)
 	else
 	{
 		write(stderr,1,1);
-        write(con.out,"cd: no such file or directory: ",32);
-        write(con.out,dirname,sizeof(dirname));
-        write(con.out," \n",3);
-        exit(1);
+		write(con.out,"cd: no such file or directory: ",32);
+		write(con.out,dirname,sizeof(dirname));
+		write(con.out," \n",3);
+		exit(1);
 	}
 }
 
-void	editenv(t_shell this, char *dest_path, char *oldpath)
+int	editenv(t_shell this, char *dest_path, char *oldpath, t_plug con)
 {
-	chdir(dest_path);
+	
+	if (chdir(dest_path) < 0)
+	{
+		write(stderr,1, 1);
+		write(con.out, "cd: no such file or directory: ", 32);
+		write(con.out, (char *) this.env.find_by_key(this.env, "HOME"), 
+		sizeof((char *) this.env.find_by_key(this.env, "HOME")));
+		write(con.out, " \n", 3);
+		exit(1);
+	}
 	this.env.rmplc_by_key(this.env, "PWD", dest_path, strlen(dest_path));
 	this.env.rmplc_by_key(this.env, "OLDPWD", oldpath, strlen(oldpath));
+	return (1);
 }
 
 void	cmd_cd(t_shell this,t_node args, t_plug con)
@@ -35,17 +45,18 @@ void	cmd_cd(t_shell this,t_node args, t_plug con)
 	char tmp[MAXPATH];
 
 	dest_path = (char *) iterator->next(iterator);//get the cd argument value
+
 	oldpath = (char *) this.env.find_by_key(this.env, "PWD");
 	if(dest_path[0] != '/')
 	{
 		getcwd(tmp,sizeof(tmp));
 		strcat(tmp,"/");
-		dest_path = strcat(tmp,dest_path);
+		dest_path = strjoin(tmp, dest_path);
 		if (checkdir(dest_path, con))
-			editenv(this, dest_path, oldpath);
+			editenv(this, dest_path, oldpath, con);
 	}
 	else
-		editenv(this, dest_path, oldpath);
+		editenv(this, dest_path, oldpath, con);
 }
 
 void	cmd_pwd(t_shell this, t_plug con)

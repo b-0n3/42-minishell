@@ -50,8 +50,16 @@ void	cmd_unset(t_shell shell,t_string key)
 void	cmd_export(t_shell this, t_node node)
 {
 	t_array_iterator *iterator;
+	t_key_map *map;
 
-	iterator = node.args.iterator(&node.args);
-	this.env.push(&this, env_to_key_map(iterator), sizeof(t_key_map *));
+	iterator = (char *) node.args.iterator(&node.args);
+    map = malloc(sizeof(t_key_map));
+    if (map == NULL)
+        return;
+    map->key = split_env(iterator);
+    map->value = strdup( iterator + strlen(map->key) + 1);
+	if((char *) this.env.find_by_key(this.env, map->key) == NULL)
+		this.env.push(&this, map, sizeof(t_key_map *));
+	else
+		this.env.rmplc_by_key(this.env, map->key, map->value , strlen(map->value));
 }
-
