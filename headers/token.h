@@ -93,10 +93,10 @@ typedef  struct s_env_ext{
 } t_env_ext;
 
 typedef struct s_file{
-        t_string  name;
+        t_string  uri;
         int       fd;
         int       exception;
-        t_bool  (*open)(struct s_file *this);
+        t_bool  (*open)(struct s_file *this, int perms);
         void    (*free)(struct  s_file *this);
 }           t_file;
 
@@ -130,6 +130,7 @@ struct s_node
     void (*to_string)(t_node *this);
 };
 
+t_bool file_open(t_file *this, int perms);
 void print_node(t_node *node);
 t_file *new_file(t_string uri);
 t_token  *new_token(t_string value, t_token_type type);

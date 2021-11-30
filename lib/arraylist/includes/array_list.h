@@ -34,7 +34,7 @@ typedef struct s_key_map{
 }   t_key_map;
 
 
-// Todo: implement iterator  and create a repo for this not copying everytime 
+
 typedef struct s_array_iterator{
 		size_t next_index;
 		t_array_list *list;

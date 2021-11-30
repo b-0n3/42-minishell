@@ -1,6 +1,7 @@
 //
 // Created by Abdelouahad Ait hamd on 11/8/21.
 //
+#include <sys/fcntl.h>
 #include "minishell.h"
 t_string split_env(t_string env)
 {
@@ -52,20 +53,18 @@ void init_shell(t_shell *this ,t_string line)
 	if (this != NULL) {
 		if (!this->fresh)
 		{
-			//this->tokens->free(this->tokens, &free);
-			//  free(this->tokens);
-			//  this->nodes->free(this->nodes, &free);
-			// free(this->nodes);
-			//    free(this->commmand);
+            if (this->parsing_error != NULL)
+                free(this->parsing_error);
 		}
-		this->tokens = malloc(sizeof(t_array_list));
-		new_array_list(this->tokens, 10, sizeof (t_token));
-		this->nodes = malloc(sizeof(t_array_list));
-		new_array_list(this->nodes, 10, sizeof (t_node));
+//		this->tokens = malloc(sizeof(t_array_list));
+//		new_array_list(this->tokens, 10, sizeof (t_token));
+//		this->nodes = malloc(sizeof(t_array_list));
+//		new_array_list(this->nodes, 10, sizeof (t_node));
 		this->cursor = 0;
 		this->l_cursor = 0;
 		this->fresh = 0;
 		this->commmand = line;
+        this->parsing_error = NULL;
 		this->command_len = strlen(this->commmand);
 		//        if (!this->unclosed(this)) {
 		this->dqout = FALSE;
@@ -129,6 +128,12 @@ t_token *pre_get_next_token(t_shell *this)
 	return token;
 }
 
+t_bool file_open(t_file *this, int perms)
+{
+    this->fd = open(this->uri , perms);
+    this->exception =  this->fd < 0;
+    return this->exception;
+}
 void split_it(t_array_list *this, t_string cmd, char ch)
 {
     int dq;
@@ -192,7 +197,7 @@ t_node *token_to_node(t_token *this)
             iter = split(this->value, ' ');
             if (iter->list->index > 1) {
                 free(node->value);
-                node->value = (char *) iter->next(iter);
+                node->value = (char *)iter->next(iter);
                 while(iter->has_next(iter))
                   node->args.push(&node->args, iter->do_on_next(iter, &str_to_token), sizeof(t_token));
             }
@@ -204,16 +209,26 @@ t_node *token_to_node(t_token *this)
 	return node;
 }
 
-void add_file(t_node *head, t_token *token)
+void add_file(t_shell  *this, t_node *head, t_token *token)
 {
-	if (head->op_type == redirection || head->op_type == append)
-		head->output_file = token->to_file(token);
-	else if (head->op_type == input)
-		head->input_file = token->to_file(token);
-	else
+    if (this->parsing_error != NULL)
+            return ;
+	if (head->op_type == redirection || head->op_type == append) {
+        head->output_file = token->to_file(token);
+        if (head->output_file->open(head->output_file,O_RDONLY| O_CREAT))
+            this->parsing_error = strdup(head->output_file->uri);
+    }
+    else if (head->op_type == input) {
+        head->input_file = token->to_file(token);
+        if (head->input_file->open(head->input_file,O_WRONLY))
+            this->parsing_error = strdup(head->input_file->uri);
+    }
+    else
 	{
 		head->eof = strdup(token->value);
 		head->output_file = new_file("/tmp/B0N3_HEREDOC");
+        if (head->output_file->open(head->output_file,O_RDONLY| O_CREAT))
+            this->parsing_error = strdup(head->output_file->uri);
 	}
 	token->free(token);
 }
@@ -258,27 +273,7 @@ t_node  *handle_operator(t_shell  *this, t_token  *token, t_node *head)
 	return head;
 }
 
-t_bool is_env_variables(t_string str)
-{
-	t_bool  dq;
-	t_bool  q;
-	int i;
 
-	dq = FALSE;
-	q = FALSE;
-	i = 0;
-	while (str[i]!= '\0')
-	{
-		if (!dq && str[i] == '\'')
-			q = !q;
-		if (!q && str[i] == '\"')
-			dq = !dq;
-		if(!q && str[i] == '$')
-			return TRUE;
-		i++;
-	}
-	return FALSE;
-}
 
 
 t_node *handle_word(t_shell *this, t_token *token ,t_node *head)
@@ -288,10 +283,10 @@ t_node *handle_word(t_shell *this, t_token *token ,t_node *head)
     token->expand(token, this->env);
 	if (head != NULL && head->right != NULL && head->right->need_a_file(head->right))
 	{
-		add_file(head->right, token);
+		add_file(this,head->right, token);
 	}
 	else if (head != NULL && head->need_a_file(head))
-		add_file(head, token);
+		add_file(this,head, token);
 	else if (head == NULL || head->op_type == pipeline  )
 	{
 		com = token->to_node(token);
@@ -330,8 +325,13 @@ t_node *handle_word(t_shell *this, t_token *token ,t_node *head)
 
 t_bool check_syntax(t_shell  *this, t_node *pointer)
 {
-    if (pointer == NULL)
-        return TRUE;
+    t_node  *tmp;
+
+    tmp = pointer;
+    if (pointer == NULL )
+         return TRUE;
+    if (this != NULL && this->parsing_error != NULL)
+        return FALSE;
     if(pointer->op_type == pipeline)
     {
         if (pointer->left == NULL || pointer->right == NULL)
@@ -361,9 +361,24 @@ t_bool check_syntax(t_shell  *this, t_node *pointer)
                 return (FALSE);
             }
         }
-
     }
-	return check_syntax(this, pointer->left) && check_syntax(this, pointer->right);
+    if (pointer->need_a_file(pointer))
+    {
+        if (pointer->op_type == redirection || pointer->op_type == append || pointer->op_type == heredoc) {
+            if (pointer->output_file == NULL) {
+                this->parsing_error = strdup("syntax error");
+                return (FALSE);
+            }
+        }
+        else
+            if (pointer->input_file == NULL)
+            {
+
+                this->parsing_error = strdup("syntax error");
+                return (FALSE);
+            }
+    }
+	return check_syntax(this, tmp->left) && check_syntax(this, tmp->right);
 }
 
 t_bool shell_parse(t_shell *this) {
@@ -386,7 +401,7 @@ t_bool shell_parse(t_shell *this) {
 			head = handle_operator(this , token, head);
 	}
 	this->head = head;
-	return  check_syntax(this, head);
+	return  check_syntax(this, head) ;//&& check_file_syntax(this->head);
 }
 
 void print_node(t_node *node)
@@ -417,7 +432,7 @@ void shell_loop(t_shell *this)
 
 		}
 		else
-			printf(this->parsing_error);
+			perror(this->parsing_error);
 		// execute command
 		line = readline("IM->B0N3$>");
 	}

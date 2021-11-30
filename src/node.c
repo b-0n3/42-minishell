@@ -30,11 +30,13 @@ t_file *new_file(t_string uri)
     t_file *file;
 
     file = malloc(sizeof (t_file));
-    file->name = strdup(uri);
+    file->uri = strdup(uri);
     file->exception = 0;
+    file->open = &file_open;
     file->fd = -1;
     return  file;
 }
+
 t_node  *new_node()
 {
     t_node  *new;
@@ -86,6 +88,7 @@ void  node_free(t_node *this)
     node_free(this->right);
     free(this);
 }
+
 void node_to_string(t_node *this)
 {
 

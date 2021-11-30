@@ -1,17 +1,17 @@
 #include "minishell.h"
 
-t_token  *new_token(t_string value, t_token_type type)
-{
-    t_token  *token;
-    int i = 0;
-    token = malloc(sizeof(t_token));
-    if(token == NULL)
-        return  NULL;
-    while (value[i] != '\0' && value[i] == ' ')
-        i++;
+t_token *new_token(t_string value, t_token_type type) {
+    t_token *token;
+    int i;
 
+    i = 0;
+    token = malloc(sizeof(t_token));
+    if (token == NULL)
+        return NULL;
+    while (value[i] == ' ')
+        i++;
     token->value = value;
-    token->type =type;
+    token->type = type;
     token->start_with = value[i];
     token->to_node = &token_to_node;
     token->free = &token_free;
@@ -20,30 +20,27 @@ t_token  *new_token(t_string value, t_token_type type)
     return (token);
 }
 
-t_token *check_pipe(t_shell *this)
-{
+t_token *check_pipe(t_shell *this) {
 
     if (this->commmand[this->cursor] == pipe) {
         this->cursor++;
-        while(this->commmand[this->cursor] == ' ')
+        while (this->commmand[this->cursor] == ' ')
             this->cursor++;
         this->l_cursor = this->cursor;
         return new_token(strdup("|"), op);
     }
-        return  NULL;
+    return NULL;
 }
 
 
-t_token  *check_less(t_shell *this)
-{
+t_token *check_less(t_shell *this) {
     t_token *token;
 
     token = NULL;
 
-    if (this->commmand[this->cursor] == less)
-    {
+    if (this->commmand[this->cursor] == less) {
         this->cursor++;
-        this->l_cursor= this->cursor;
+        this->l_cursor = this->cursor;
         token = new_token(strdup("<"), op);
         if (this->commmand[this->cursor] == less) {
             free(token->value);
@@ -51,22 +48,21 @@ t_token  *check_less(t_shell *this)
             this->cursor++;
             this->l_cursor = this->cursor;
         }
-        while(this->commmand[this->cursor] == ' ')
+        while (this->commmand[this->cursor] == ' ')
             this->cursor++;
         this->l_cursor = this->cursor;
     }
     return token;
 }
-t_token  *check_great(t_shell *this)
-{
+
+t_token *check_great(t_shell *this) {
     t_token *token;
 
     token = NULL;
 
-    if (this->commmand[this->cursor] ==  great)
-    {
+    if (this->commmand[this->cursor] == great) {
         this->cursor++;
-        this->l_cursor= this->cursor;
+        this->l_cursor = this->cursor;
         token = new_token(strdup(">"), op);
         if (this->commmand[this->cursor] == great) {
             free(token->value);
@@ -74,37 +70,35 @@ t_token  *check_great(t_shell *this)
             this->cursor++;
 
         }
-        while(this->commmand[this->cursor] == ' ')
+        while (this->commmand[this->cursor] == ' ')
             this->cursor++;
         this->l_cursor = this->cursor;
     }
     return token;
 }
 
-t_token *get_word(t_shell *this)
-{
-    t_token  *token;
+t_token *get_word(t_shell *this) {
+    t_token *token;
     if (this->quot || this->dqout)
         return NULL;
-    if(this->cursor <= this->l_cursor) {
+    if (this->cursor <= this->l_cursor) {
         return NULL;
     }
 
     token = new_token(strndup(this->commmand + this->l_cursor,
-                             this->cursor - this->l_cursor), word);
-    while(this->commmand[this->cursor] == ' ')
+                              this->cursor - this->l_cursor), word);
+    while (this->commmand[this->cursor] == ' ')
         this->cursor++;
     this->l_cursor = this->cursor;
-    return  (token);
+    return (token);
 }
-t_token *get_op(t_shell *this)
-{
+
+t_token *get_op(t_shell *this) {
     t_token *token;
     if (this->quot || this->dqout)
         return NULL;
     token = check_pipe(this);
-    if (token == NULL)
-    {
+    if (token == NULL) {
         token = check_great(this);
         if (token == NULL)
             token = check_less(this);
@@ -112,118 +106,96 @@ t_token *get_op(t_shell *this)
     return token;
 }
 
-t_token  *cut_token(t_shell *this) {
+t_token *cut_token(t_shell *this) {
     t_token *token;
-   // this->cursor++;
+    // this->cursor++;
 
     if (this->quot || this->dqout)
         return NULL;
     token = get_op(this);
     if (token == NULL)
-            token = get_word(this);
+        token = get_word(this);
     return token;
 }
 //// cat | hell
-////    ^
+////           ^
 
-t_bool  check_op(char ch)
-{
+t_bool check_op(char ch) {
     return (ch == less || ch == great || ch == pipe);
 }
 
-t_bool check_unclosed(t_shell *this)
-{
+t_bool check_unclosed(t_shell *this) {
     if (!this->has_next_token(this))
         return (FALSE);
-    if (this->commmand[this->cursor] == '\"' && !this->quot)
-    {
-        this->dqout= !this->dqout;
+    if (this->commmand[this->cursor] == '\"' && !this->quot) {
+        this->dqout = !this->dqout;
         this->cursor++;
         return (TRUE);
     }
-    if (this->commmand[this->cursor] == '\'' && !this->dqout)
-    {
-        this->quot= !this->quot;
+    if (this->commmand[this->cursor] == '\'' && !this->dqout) {
+        this->quot = !this->quot;
         this->cursor++;
         return (TRUE);
     }
-    return  (FALSE);
+    return (FALSE);
 }
 
-void token_free(t_token *this)
-{
-    if (this != NULL)
-    {
+void token_free(t_token *this) {
+    if (this != NULL) {
         free(this->value);
         free(this);
     }
 }
-t_bool is_allowed_in_env(char ch)
-{
-    return ((ch >= 'a' && ch <= 'z')  ||
-            (ch >='A' && ch <= 'Z')  ||
-            (ch >='0' && ch <= '9')  ||
+
+t_bool is_allowed_in_env(char ch) {
+    return ((ch >= 'a' && ch <= 'z') ||
+            (ch >= 'A' && ch <= 'Z') ||
+            (ch >= '0' && ch <= '9') ||
             (ch == '_'));
 }
 
-t_string  cut_word(t_env_ext *this)
-{
+t_string cut_word(t_env_ext *this) {
     return strndup(this->cmd + this->l_cursor,
                    this->cursor - this->l_cursor);
 }
 
-t_bool is_digit(char ch)
-{
-    return (ch  >= '0' && ch <= '9');
+t_bool is_digit(char ch) {
+    return (ch >= '0' && ch <= '9');
 }
-t_string ft_strjoin(t_string s1, t_string s2)
-{
+
+t_string ft_strjoin(t_string s1, t_string s2) {
     t_string result;
     if (s1 == NULL)
         return s2;
     if (s2 == NULL)
         return s1;
-    result = calloc(strlen(s1) + strlen(s2) +1, 1);
+    result = calloc(strlen(s1) + strlen(s2) + 1, 1);
     memcpy(result, s1, strlen(s1));
     memcpy(result + strlen(s1), s2, strlen(s2));
     free(s1);
     return result;
 
 }
-t_bool  env_ext_has_next(t_env_ext *this)
-{
+
+t_bool env_ext_has_next(t_env_ext *this) {
     return (this->cursor < this->length);
 }
 
 // asdf"sdaf$HOME'sdf'_$USER_$HOME"
-t_string env_ext_next(t_env_ext *this)
-{
+t_string env_ext_next(t_env_ext *this) {
     int i;
     char *env;
     char *value;
 
-    i =0;
-    if (this->cursor  == this->length && this->l_cursor < this->cursor)
+    i = 0;
+    if (this->cursor == this->length && this->l_cursor < this->cursor)
         return strndup(this->cmd + this->l_cursor, this->cursor - this->l_cursor);
     if (this->l_cursor > this->cursor || this->cursor >= this->length)
         return NULL;
-    if (this->cmd[this->cursor] =='\"' && !this->q) {
+    if (this->cmd[this->cursor] == '\"' && !this->q) {
         this->dq = !this->dq;
-        if (this->l_cursor  < this->cursor) {
+        if (this->l_cursor < this->cursor) {
 
-            value =strndup(this->cmd + this->l_cursor, this->cursor - this->l_cursor);
-            this->l_cursor = this->cursor;
-            this->cursor++;
-            return value;
-        }
-        this->cursor++;
-        this->l_cursor = this->cursor;
-        }
-    if (this->cmd[this->cursor] == '\'' && !this->dq)
-    {
-        this->q = !this->q;
-        this->expand = !this->expand;
-        if (this->l_cursor  < this->cursor) {
             value = strndup(this->cmd + this->l_cursor, this->cursor - this->l_cursor);
             this->l_cursor = this->cursor;
             this->cursor++;
@@ -232,26 +204,35 @@ t_string env_ext_next(t_env_ext *this)
         this->cursor++;
         this->l_cursor = this->cursor;
     }
-    if (this->cmd[this->cursor] == '$' && this->expand && !is_digit(this->cmd[this->cursor + 1]))
-    {
+    if (this->cmd[this->cursor] == '\'' && !this->dq) {
+        this->q = !this->q;
+        this->expand = !this->expand;
+        if (this->l_cursor < this->cursor) {
+            value = strndup(this->cmd + this->l_cursor, this->cursor - this->l_cursor);
+            this->l_cursor = this->cursor;
+            this->cursor++;
+            return value;
+        }
+        this->cursor++;
+        this->l_cursor = this->cursor;
+    }
+    if (this->cmd[this->cursor] == '$' && this->expand && !is_digit(this->cmd[this->cursor + 1])) {
         i = this->cursor + 1;
-        while(this->cmd[i] != '\0'  && is_allowed_in_env(this->cmd[i]))
+        while (this->cmd[i] != '\0' && is_allowed_in_env(this->cmd[i]))
             i++;
-        env = strndup(this->cmd + this->cursor + 1,  i - (this->cursor + 1 ) );
+        env = strndup(this->cmd + this->cursor + 1, i - (this->cursor + 1));
         value = this->env->find_by_key(*this->env, env);
         if (value == NULL)
             value = strdup("");
         free(env);
-        env = ft_strjoin( strndup(this->cmd + this->l_cursor, this->cursor - this->l_cursor), value);
+        env = ft_strjoin(strndup(this->cmd + this->l_cursor, this->cursor - this->l_cursor), value);
         this->cursor = i;
         this->l_cursor = this->cursor;
         return env;
-    }
-    else if (this->cmd[this->cursor] == '$')
-    {
+    } else if (this->cmd[this->cursor] == '$') {
         value = strndup(this->cmd + this->l_cursor, this->cursor - this->l_cursor);
-        this->cursor +=2;
-        this->l_cursor= this->cursor;
+        this->cursor += 2;
+        this->l_cursor = this->cursor;
         return value;
 
     }
@@ -259,12 +240,11 @@ t_string env_ext_next(t_env_ext *this)
     return this->next(this);
 }
 
-void new_env_ext(t_env_ext *this,t_array_list  *env, char *cmd)
-{
+void new_env_ext(t_env_ext *this, t_array_list *env, char *cmd) {
     this->env = env;
     this->l_cursor = 0;
     this->cursor = 0;
-    this->q=0;
+    this->q = 0;
     this->length = strlen(cmd);
     this->dq = 0;
     this->expand = 1;
@@ -273,17 +253,15 @@ void new_env_ext(t_env_ext *this,t_array_list  *env, char *cmd)
     this->next = &env_ext_next;
 }
 
-t_token  *token_expand_env(t_token *this, t_array_list env)
-{
-    t_env_ext  env_ext;
+t_token *token_expand_env(t_token *this, t_array_list env) {
+    t_env_ext env_ext;
     t_string t;
     t_string tmp;
     new_env_ext(&env_ext, &env, this->value);
     t = strdup("");
-    while (env_ext.has_next(&env_ext))
-    {
+    while (env_ext.has_next(&env_ext)) {
         tmp = env_ext_next(&env_ext);
-        if (tmp!= NULL) {
+        if (tmp != NULL) {
             t = ft_strjoin(t, tmp);
         }
 
@@ -298,12 +276,11 @@ t_token  *token_expand_env(t_token *this, t_array_list env)
  * todo : fix space after quotes
    * @return a token if found or null in case of error or find unclosed quot
  * */
-t_token *shell_get_next_token(t_shell *this)
-{
-    t_token  *token;
+t_token *shell_get_next_token(t_shell *this) {
+    t_token *token;
 
     if (this->cursor <= this->l_cursor && this->cursor >= this->command_len)
-        return  NULL;
+        return NULL;
     if (this->cursor > this->command_len && this->unclosed(this))
         return (NULL);
     if (this->cursor > this->command_len)
@@ -311,12 +288,11 @@ t_token *shell_get_next_token(t_shell *this)
     if (this->cursor == this->command_len)
         return cut_token(this);
     if (check_unclosed(this))
-            return this->get_next_token(this);
+        return this->get_next_token(this);
     if ((this->commmand[this->cursor] == '\'' && this->quot)
-     || (this->commmand[this->cursor] == '\"' && this->dqout))
+        || (this->commmand[this->cursor] == '\"' && this->dqout))
         return get_word(this);
-    if (check_op(this->commmand[this->cursor]) && !this->unclosed(this) )
-    {
+    if (check_op(this->commmand[this->cursor]) && !this->unclosed(this)) {
         if (this->l_cursor < this->cursor)
             token = get_word(this);
         else
@@ -324,8 +300,8 @@ t_token *shell_get_next_token(t_shell *this)
 
         return token;
     }
-    if (this->commmand[this->cursor] == ' ' && !this->unclosed(this) )
+    if (this->commmand[this->cursor] == ' ' && !this->unclosed(this) && this->cursor > this->l_cursor)
         return get_word(this);
     this->cursor++;
-    return  this->get_next_token(this);
+    return this->get_next_token(this);
 }
