@@ -1,31 +1,31 @@
 #include "minishell.h"
 #include <dirent.h>
 
-int		checkdir(char *dirname, t_plug con)
+int	checkdir(char *dirname, t_plug con)
 {
 	DIR	*dir;
 
 	dir = opendir(dirname);
-	if (dir) {
+	if (dir)
+	{
 		closedir(dir);
-		return(1);
+		return (1);
 	}
 	else
 	{
-		write(stderr,1,1);
-		write(con.out,"cd: no such file or directory: ",32);
-		write(con.out,dirname,sizeof(dirname));
-		write(con.out," \n",3);
+		write(stderr, 1, 1);
+		write(con.out, "cd: no such file or directory: ", 32);
+		write(con.out, dirname, sizeof(dirname));
+		write(con.out, " \n", 3);
 		exit(1);
 	}
 }
 
 int	editenv(t_shell this, char *dest_path, char *oldpath, t_plug con)
 {
-	
 	if (chdir(dest_path) < 0)
 	{
-		write(stderr,1, 1);
+		write(stderr, 1, 1);
 		write(con.out, "cd: no such file or directory: ", 32);
 		write(con.out, dest_path, sizeof(dest_path));
 		write(con.out, " \n", 3);
@@ -36,7 +36,7 @@ int	editenv(t_shell this, char *dest_path, char *oldpath, t_plug con)
 	return (1);
 }
 
-void	cmd_cd(t_shell this,t_node args, t_plug con)
+void	cmd_cd(t_shell this, t_node args, t_plug con)
 {
 	t_array_iterator *iterator;
 	char *dest_path;
