@@ -23,6 +23,7 @@ struct s_shell
     t_string  parsing_error;
     t_array_list *built_ins;
     size_t command_len;
+    pid_t       last_one;
     t_node      *head;
     int         exit_code;
     t_array_list  *nodes;

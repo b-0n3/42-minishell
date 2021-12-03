@@ -220,27 +220,27 @@ void add_file(t_shell  *this, t_node *head, t_token *token)
 {
     if (this->parsing_error != NULL)
             return ;
-	if (head->op_type == redirection || head->op_type == append) {
+	if (head->op_type == redirection) {
         head->output_file = token->to_file(token);
-        if (head->output_file->open(head->output_file,O_WRONLY| O_CREAT,0644))
+        if (head->output_file->open(head->output_file,O_WRONLY| O_CREAT | O_TRUNC,0644))
             this->parsing_error = strdup(head->output_file->uri);
     }
     else if (head->op_type == append)
     {
         head->output_file = token->to_file(token);
-        if (head->output_file->open(head->output_file, O_CREAT | O_APPEND, 0644))
+        if (head->output_file->open(head->output_file, O_CREAT | O_APPEND | O_WRONLY, 0644))
             this->parsing_error = strdup(head->output_file->uri);
     }
     else if (head->op_type == input) {
         head->input_file = token->to_file(token);
-        if (head->input_file->open(head->input_file,O_RDONLY, -1))
+        if (head->input_file->open(head->input_file, O_RDONLY, -1))
             this->parsing_error = strdup(head->input_file->uri);
     }
     else
 	{
 		head->eof = strdup(token->value);
 		head->output_file = new_file("/tmp/B0N3_HEREDOC");
-        if (head->output_file->open(head->output_file,O_RDONLY| O_CREAT, 0644))
+        if (head->output_file->open(head->output_file,O_RDONLY | O_CREAT, 0644))
             this->parsing_error = strdup(head->output_file->uri);
 	}
 	token->free(token);
@@ -455,29 +455,31 @@ exec_v *find_function(t_shell  *this , t_string value)
     return func;
 }
 
-t_bool luanch(t_shell *this, t_node *head)
+t_bool  luanch(t_shell *this, t_node *head)
 {
     if (head == NULL)
         return TRUE;
-    if (head->op_type == pipeline)
+    if (head->op_type == pipeline) {
         pipe(head->p);
+
+    }
     else if (head->word_type == command)
     {
         head->pid = fork();
         if (head->pid == 0)
         {
             find_function(this, head->value)(this, head);
-            return TRUE;
-        }
-        if (head->parent != NULL)
-        {
-            if (head->parent->op_type == pipeline)
-            {
-
-//                dup2(head->parent->p[0], STDIN_FILENO);
-//                close(head->parent->p[0]);
-//                close(head->parent->p[1]);
-
+            exit(1);
+        }else {
+            this->last_one = head->pid;
+            printf("this is pid {%d} for command %s", this->last_one, head->value);
+            if (head->parent != NULL) {
+                if (head->parent->op_type == pipeline) {
+                    if (!head->isleft) {
+                        close(head->parent->p[1]);
+                        close(head->parent->p[0]);
+                    }
+                }
             }
         }
 
@@ -496,14 +498,26 @@ t_bool close_fds(t_shell *this, t_node *head)
     }
     return close_fds(this, head->left) && close_fds(this, head->right);
 }
+t_bool  wait_for_all(t_shell *this, t_node *head)
+{
+    int exi;
+
+    if (head == NULL)
+        return TRUE;
+
+    if (head->word_type == command && this->last_one != head->pid) {
+        waitpid(head->pid, &exi, 0);
+    }
+    return wait_for_all(this,head->left) && wait_for_all(this, head->right);
+}
+
 
 void shell_execute(t_shell *this){
     luanch(this,this->head);
+    wait_for_all(this, this->head);
+    waitpid(this->last_one, &this->exit_code, 0);
 
-    waitpid(-1, NULL, 0);
-    printf("\nerewqrwqer\n");
-    close_fds(this, this->head);
-
+   close_fds(this, this->head);
 }
 
 void shell_loop(t_shell *this)
@@ -522,6 +536,7 @@ void shell_loop(t_shell *this)
 		// execute command
 		line = readline("IM->B0N3$>");
 	}
+    // @Todo: call exit
 }
 
 void shell_free(t_shell *this)

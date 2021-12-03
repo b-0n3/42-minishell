@@ -109,37 +109,47 @@ t_string *node_to_execv_args(t_node *node)
 
 extern char **environ;
 
-void exec_other(t_shell *this, t_node *node)
+void  exec_other(t_shell *this, t_node  *node)
 {
     t_string *cmd = node_to_execv_args(node);
-    if (node->parent != NULL)
-    {
-
-        if (node->isleft) {
-            dup2(node->parent->p[1], STDOUT_FILENO);
-           // close(node->parent->p[1]);
-
+    t_node  *tmp;
+    if (node->parent != NULL) {
+        if (node->isleft)
+        {
+            if (node->parent->op_type == pipeline) {
+                close(node->parent->p[0]);
+                dup2(node->parent->p[1], STDOUT_FILENO);
+                close(node->parent->p[1]);
+            }
+            else
+            {
+                tmp = node->parent;
+                while (tmp->parent != NULL && tmp->need_a_file(tmp))
+                    tmp = tmp->parent;
+                dup2(tmp->output_file->fd, STDOUT_FILENO);
+                close(tmp->output_file->fd);
+            }
         }
-        else {
-
-            dup2(node->parent->p[0],STDIN_FILENO);
+        else
+        {
+            close(node->parent->p[1]);
+            dup2(node->parent->p[0], STDIN_FILENO);
+            close(node->parent->p[0]);
             if (node->parent->parent != NULL)
             {
-                if (node->parent->parent->op_type == pipeline)
-                {
-                    dup2(node->parent->parent->p[1], STDOUT_FILENO);
-                  // close(node->parent->parent->p[1]);
-                }
+                close(node->parent->parent->p[0]);
+                dup2(node->parent->parent->p[1], STDOUT_FILENO);
+                close(node->parent->parent->p[1]);
             }
-           //close(node->parent->p[0]);
+
         }
+
     }
     if (find_command_in_path(this, node) == NULL)
             return;
 //    for (int i = 0; cmd[i] != NULL; i++)
 //        printf("%s\n", cmd[i]);
-    execve(node->value, cmd , environ);
-    exit(0);
+     execve(node->value, cmd , environ);
 }
 
 
