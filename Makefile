@@ -2,7 +2,8 @@ NAME=minishell
 ARRAY_LIST=./lib/arraylist/libarraylist.a
 ARRAY_LIST_PATH = ./lib/arraylist/
 
-SRC= $(shell find ./src -type f -name *.c)
+SRC = $(shell find ./src -type  f -name *.c)
+
 
 
 

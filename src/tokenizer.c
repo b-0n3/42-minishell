@@ -22,7 +22,7 @@ t_token *new_token(t_string value, t_token_type type) {
 
 t_token *check_pipe(t_shell *this) {
 
-    if (this->commmand[this->cursor] == pipe) {
+    if (this->commmand[this->cursor] == _pipe) {
         this->cursor++;
         while (this->commmand[this->cursor] == ' ')
             this->cursor++;
@@ -121,7 +121,7 @@ t_token *cut_token(t_shell *this) {
 ////           ^
 
 t_bool check_op(char ch) {
-    return (ch == less || ch == great || ch == pipe);
+    return (ch == less || ch == great || ch == _pipe);
 }
 
 t_bool check_unclosed(t_shell *this) {

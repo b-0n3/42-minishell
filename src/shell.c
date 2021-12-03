@@ -1,7 +1,7 @@
 //
 // Created by Abdelouahad Ait hamd on 11/8/21.
 //
-#include <sys/fcntl.h>
+
 #include "minishell.h"
 t_string split_env(t_string env)
 {
@@ -26,7 +26,6 @@ t_key_map *env_to_key_map(t_string str)
 
 void push_env(t_array_list *list,t_string  *env)
 {
-    list->push(list, env_to_key_map("vv=ls -al") , sizeof (t_key_map *));
 	while (*env != NULL)
 	{
 		list->push(list, env_to_key_map(*env), sizeof(t_key_map *));
@@ -44,6 +43,7 @@ void create_shell(t_shell *this, t_string *env)
 	this->get_next_token = &shell_get_next_token;
 	this->has_next_token = &has_next_token;
 	this->unclosed = &shell_quot_unclosed;
+    this->execute = &shell_execute;
 	this->loop = &shell_loop;
 	this->free = &shell_free;
 }
@@ -60,6 +60,8 @@ void init_shell(t_shell *this ,t_string line)
 //		new_array_list(this->tokens, 10, sizeof (t_token));
 //		this->nodes = malloc(sizeof(t_array_list));
 //		new_array_list(this->nodes, 10, sizeof (t_node));
+
+        this->exit_code = -1;
 		this->cursor = 0;
 		this->l_cursor = 0;
 		this->fresh = 0;
@@ -69,6 +71,7 @@ void init_shell(t_shell *this ,t_string line)
 		//        if (!this->unclosed(this)) {
 		this->dqout = FALSE;
 		this->quot = FALSE;
+        init_exec_builtins(this);
 		//        }
 	}
 
@@ -128,12 +131,16 @@ t_token *pre_get_next_token(t_shell *this)
 	return token;
 }
 
-t_bool file_open(t_file *this, int perms)
+t_bool file_open(t_file *this, int mode, int perms)
 {
-    this->fd = open(this->uri , perms);
+    if (perms > 0)
+        this->fd = open(this->uri ,mode, perms);
+    else
+        this->fd = open(this->uri ,mode);
     this->exception =  this->fd < 0;
     return this->exception;
 }
+
 void split_it(t_array_list *this, t_string cmd, char ch)
 {
     int dq;
@@ -215,19 +222,25 @@ void add_file(t_shell  *this, t_node *head, t_token *token)
             return ;
 	if (head->op_type == redirection || head->op_type == append) {
         head->output_file = token->to_file(token);
-        if (head->output_file->open(head->output_file,O_RDONLY| O_CREAT))
+        if (head->output_file->open(head->output_file,O_WRONLY| O_CREAT,0644))
+            this->parsing_error = strdup(head->output_file->uri);
+    }
+    else if (head->op_type == append)
+    {
+        head->output_file = token->to_file(token);
+        if (head->output_file->open(head->output_file, O_CREAT | O_APPEND, 0644))
             this->parsing_error = strdup(head->output_file->uri);
     }
     else if (head->op_type == input) {
         head->input_file = token->to_file(token);
-        if (head->input_file->open(head->input_file,O_WRONLY))
+        if (head->input_file->open(head->input_file,O_RDONLY, -1))
             this->parsing_error = strdup(head->input_file->uri);
     }
     else
 	{
 		head->eof = strdup(token->value);
 		head->output_file = new_file("/tmp/B0N3_HEREDOC");
-        if (head->output_file->open(head->output_file,O_RDONLY| O_CREAT))
+        if (head->output_file->open(head->output_file,O_RDONLY| O_CREAT, 0644))
             this->parsing_error = strdup(head->output_file->uri);
 	}
 	token->free(token);
@@ -245,6 +258,7 @@ t_node  *handle_operator(t_shell  *this, t_token  *token, t_node *head)
 		if (head != NULL)
 		{
 			operator->left = head;
+            head->isleft = TRUE;
 			head->parent = operator;
 			head = operator;
 		} else
@@ -257,13 +271,23 @@ t_node  *handle_operator(t_shell  *this, t_token  *token, t_node *head)
 			if (head->right != NULL)
 			{
 				operator->left = head->right;
+                head->right->isleft = TRUE;
 				head->right->parent = operator;
 				head->right = operator;
+                operator->isleft = FALSE;
+
 			}
+            else
+            {
+                operator->isleft = FALSE;
+                head->right =operator;
+                head->right->parent = head;
+            }
 		}
 		else
 		{
 			operator->left = head;
+            head->isleft= TRUE;
 			head->parent = operator;
 			head = operator;
 		}
@@ -293,11 +317,15 @@ t_node *handle_word(t_shell *this, t_token *token ,t_node *head)
 		token->free(token);
 		if (head != NULL)
 		{
-			if (head->left == NULL)
-				head->left = com;
-			else
-				head->right = com;
-			com->parent = head;
+			if (head->left == NULL) {
+                head->left = com;
+                com->isleft = TRUE;
+            }
+              else {
+                head->right = com;
+                com->isleft = FALSE;
+            }
+                com->parent = head;
 		}else
 			head = com;
 		while (1)
@@ -313,11 +341,11 @@ t_node *handle_word(t_shell *this, t_token *token ,t_node *head)
 	return head;
 }
 
-//t_bool check_pipeline_sides(t_shell *this, t_node *pipe) {
+//t_bool check_pipeline_sides(t_shell *this, t_node *_pipe) {
 //    t_bool ret;
 //
-//    ret = !(pipe->right == NULL || pipe->left == NULL);
-//    if (!ret  && pipe->right)
+//    ret = !(_pipe->right == NULL || _pipe->left == NULL);
+//    if (!ret  && _pipe->right)
 //
 //    return (ret);
 //}
@@ -419,6 +447,64 @@ void print_node(t_node *node)
 	print_node(node->right);
 
 }
+exec_v *find_function(t_shell  *this , t_string value)
+{
+    exec_v *func = (exec_v *)this->exec_pool.find_by_key(this->exec_pool, value);
+    if(func ==  NULL)
+        func = &exec_other;
+    return func;
+}
+
+t_bool luanch(t_shell *this, t_node *head)
+{
+    if (head == NULL)
+        return TRUE;
+    if (head->op_type == pipeline)
+        pipe(head->p);
+    else if (head->word_type == command)
+    {
+        head->pid = fork();
+        if (head->pid == 0)
+        {
+            find_function(this, head->value)(this, head);
+            return TRUE;
+        }
+        if (head->parent != NULL)
+        {
+            if (head->parent->op_type == pipeline)
+            {
+
+//                dup2(head->parent->p[0], STDIN_FILENO);
+//                close(head->parent->p[0]);
+//                close(head->parent->p[1]);
+
+            }
+        }
+
+    }
+    return luanch(this, head->left) && luanch(this, head->right);
+}
+
+t_bool close_fds(t_shell *this, t_node *head)
+{
+    if (head == NULL)
+        return TRUE;
+    if (head->op_type == pipeline)
+    {
+        close(head->p[0]);
+        close(head->p[1]);
+    }
+    return close_fds(this, head->left) && close_fds(this, head->right);
+}
+
+void shell_execute(t_shell *this){
+    luanch(this,this->head);
+
+    waitpid(-1, NULL, 0);
+    printf("\nerewqrwqer\n");
+    close_fds(this, this->head);
+
+}
 
 void shell_loop(t_shell *this)
 {
@@ -429,7 +515,7 @@ void shell_loop(t_shell *this)
 		this->init(this, line);
 		if (this->parse(this))
 		{
-
+            this->execute(this);
 		}
 		else
 			perror(this->parsing_error);

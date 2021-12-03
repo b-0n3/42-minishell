@@ -42,7 +42,7 @@ typedef enum e_command_type{
  typedef enum e_operation_type{
      less= '<',
      great= '>',
-     pipe= '|',
+     _pipe= '|',
      o_none
 
  } t_operation_type;
@@ -54,7 +54,6 @@ typedef enum e_command_type{
      _export,
      _unset,
      _env,
-     _exit,
      i_c_none =-1
  } t_internal_command;
 
@@ -96,7 +95,7 @@ typedef struct s_file{
         t_string  uri;
         int       fd;
         int       exception;
-        t_bool  (*open)(struct s_file *this, int perms);
+        t_bool  (*open)(struct s_file *this, int mode, int perms);
         void    (*free)(struct  s_file *this);
 }           t_file;
 
@@ -110,6 +109,7 @@ typedef struct s_token{
     t_file *(*to_file)(struct s_token *this);
     void (*free)(struct s_token *this);
 }   t_token;
+
 struct s_node
 {
     t_string value;
@@ -117,6 +117,9 @@ struct s_node
     t_node          *parent;
     t_node         *right;
     t_node         *left;
+    pid_t           pid;
+    t_bool          isleft;
+    int            p[2];
     t_string       eof;
     t_word_type  word_type;
     t_file        *input_file;
@@ -130,7 +133,7 @@ struct s_node
     void (*to_string)(t_node *this);
 };
 
-t_bool file_open(t_file *this, int perms);
+t_bool file_open(t_file *this, int mode, int perms);
 void print_node(t_node *node);
 t_file *new_file(t_string uri);
 t_token  *new_token(t_string value, t_token_type type);

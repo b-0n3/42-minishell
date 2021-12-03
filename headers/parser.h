@@ -3,15 +3,28 @@
 
 # include "token.h"
 
-typedef struct s_shell
+typedef  struct s_shell t_shell;
+
+typedef void exec_v(t_shell *this, t_node *node);
+
+typedef struct s_func_map
+{
+    t_string  key;
+    exec_v *func;
+}           t_func_map;
+
+
+struct s_shell
 {
     t_array_list env;
+    t_array_list exec_pool;
     t_bool       fresh;
     t_string  commmand;
     t_string  parsing_error;
-    t_array_list *tokens;
+    t_array_list *built_ins;
     size_t command_len;
     t_node      *head;
+    int         exit_code;
     t_array_list  *nodes;
     size_t      l_cursor;
     size_t     cursor;
@@ -22,9 +35,10 @@ typedef struct s_shell
     t_bool (*has_next_token)(struct s_shell *this);
     void (*loop)(struct s_shell *this);
     t_token *(*get_next_token)(struct s_shell *this);
+    void (*execute)(struct s_shell *this);
     t_bool (*parse)(struct s_shell *this);
     void (*free)(struct s_shell *this);
-}           t_shell;
+};
 
 void create_shell(t_shell *this, t_string *env);
 void init_shell(t_shell *this, t_string line);
@@ -34,7 +48,20 @@ t_bool shell_parse( t_shell *this);
 void shell_free(t_shell *this);
 t_bool has_next_token(t_shell *this);
 t_bool shell_quot_unclosed(t_shell *this);
-// cat f1 |  grep line >>  f1
+t_key_map  *new_func_map(t_string key, exec_v *func);
+void shell_execute(t_shell *this);
+void exec_echo(t_shell *this, t_node *node);
+void exec_cd(t_shell *this, t_node *node);
+void exec_pwd(t_shell *this, t_node *node);
+void exec_export(t_shell *this, t_node *node);
+void exec_unset(t_shell *this, t_node *node);
+void exec_env(t_shell *this, t_node *node);
+void exec_exit(t_shell *this, t_node *node);
+void exec_other(t_shell *this, t_node *node);
+ void init_exec_builtins(t_shell *this);
+ t_string *node_to_execv_args(t_node *node);
+ t_array_iterator *split(t_string cmd, char ch);
+ // cat f1 |  grep line >>  f1
 
 /**
 {
