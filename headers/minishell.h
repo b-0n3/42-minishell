@@ -9,4 +9,6 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+void	print_token(void *item);
+
 #endif
