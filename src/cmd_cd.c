@@ -38,18 +38,17 @@ int	editenv(t_shell this, char *dest_path, char *oldpath, t_plug con)
 
 void	cmd_cd(t_shell this, t_node args, t_plug con)
 {
-	t_array_iterator *iterator;
-	char *dest_path;
-	char *oldpath;
-	char tmp[MAXPATH];
+	t_array_iterator	*iterator;
+	char				*dest_path;
+	char				*oldpath;
+	char				tmp[MAXPATH];
 
-	dest_path = (char *) iterator->next(iterator);//get the cd argument value
-
+	dest_path = (char *) iterator->next(iterator);
 	oldpath = (char *) this.env.find_by_key(this.env, "PWD");
-	if(dest_path[0] != '/')
+	if (dest_path[0] != '/')
 	{
-		getcwd(tmp,sizeof(tmp));
-		strcat(tmp,"/");
+		getcwd(tmp, sizeof(tmp));
+		strcat(tmp, "/");
 		dest_path = strcat(tmp, dest_path);
 		if (checkdir(dest_path, con))
 			editenv(this, dest_path, oldpath, con);
@@ -60,9 +59,9 @@ void	cmd_cd(t_shell this, t_node args, t_plug con)
 
 void	cmd_pwd(t_shell this, t_plug con)
 {
-	char tmp[MAXPATH];
+	char	tmp[MAXPATH];
 
-	getcwd(tmp,sizeof(tmp));
-	write(con.out,&tmp,strlen(tmp));
-	write(con.out,"\n",1);
+	getcwd(tmp, sizeof(tmp));
+	write(con.out, &tmp, strlen(tmp));
+	write(con.out, "\n", 1);
 }
