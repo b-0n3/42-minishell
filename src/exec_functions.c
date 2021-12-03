@@ -109,7 +109,7 @@ t_string *node_to_execv_args(t_node *node)
 
 extern char **environ;
 
-void  exec_other(t_shell *this, t_node  *node)
+void    exec_other(t_shell *this, t_node  *node)
 {
     t_string *cmd = node_to_execv_args(node);
     t_node  *tmp;

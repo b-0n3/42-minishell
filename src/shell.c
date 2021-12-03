@@ -228,7 +228,7 @@ void add_file(t_shell  *this, t_node *head, t_token *token)
     else if (head->op_type == append)
     {
         head->output_file = token->to_file(token);
-        if (head->output_file->open(head->output_file, O_CREAT | O_APPEND | O_WRONLY, 0644))
+         if (head->output_file->open(head->output_file, O_CREAT | O_APPEND | O_WRONLY, 0644))
             this->parsing_error = strdup(head->output_file->uri);
     }
     else if (head->op_type == input) {
@@ -461,7 +461,6 @@ t_bool  luanch(t_shell *this, t_node *head)
         return TRUE;
     if (head->op_type == pipeline) {
         pipe(head->p);
-
     }
     else if (head->word_type == command)
     {
