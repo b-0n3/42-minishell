@@ -12,4 +12,6 @@
 #include <unistd.h>
 #include <dirent.h>
 char			*ft_itoa(int n);
+void	cmd_cd(t_shell *this, t_node *head);
+void	cmd_pwd(t_shell *this);
 #endif

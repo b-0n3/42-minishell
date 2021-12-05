@@ -592,17 +592,22 @@ t_bool  wait_for_all(t_shell *this, t_node *head)
     }
     return wait_for_all(this,head->left) && wait_for_all(this, head->right);
 }
+t_bool is_built_in(t_string n)
+{
+    return !strcmp(n, "cd") || !strcmp(n ,"pwd");
+}
 
 void  shell_execute(t_shell *this){
     mood = 1;
-//    if (this->head->parent == NULL)
-//    {
-//
-//    }else {
+    if ((this->head->parent == NULL || this->head->parent->need_a_file(this->head->parent))
+    && is_built_in(this->head->value) )
+    {
+        find_function(this, this->head->value)(this, this->head);
+    }else {
         launch(this, this->head);
         wait_for_all(this, this->head);
         waitpid(this->last_one, &this->exit_code, 0);
-    //}
+    }
     close_fds(this, this->head);
 
     mood = 0;

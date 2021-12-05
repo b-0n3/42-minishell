@@ -48,15 +48,16 @@ t_array_list	*new_array_list(
 	this->clone = &clone;
 	this->push_clone = &push_clone;
     this->find_by_key = &find_by_key;
-	return (this);
+    return (this);
 }
 
 t_bool map_replace_by_key(t_array_list *this, t_string key, void *new_one, void (*del)(void *item))
 {
-    t_key_map * map = this->find_by_key(this, key);
+    t_key_map * map = this->find_by_key(*this, key);
     if (map == NULL)
-        return(FALSE)
-    del(map->value);
+        return(FALSE);
+    del = NULL;
+    //del(map->value);
     map->value = new_one;
     return TRUE;
 }

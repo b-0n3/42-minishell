@@ -12,12 +12,13 @@ void exec_echo(t_shell *this, t_node *node)
 
 void exec_cd(t_shell *this, t_node *node)
 {
-    printf("cd command \n");
+    cmd_cd(this, node);
 }
 
 void exec_pwd(t_shell *this, t_node *node)
 {
-    printf("pwd command \n");
+    cmd_pwd(this);
+    node = node;
 }
 
 void exec_export(t_shell *this, t_node *node)

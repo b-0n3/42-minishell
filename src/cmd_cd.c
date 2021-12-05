@@ -13,7 +13,6 @@ int	checkdir(char *dirname)
 	}
 	else
 	{
-		write(STDERR_FILENO, 1, 1);
 		write(STDOUT_FILENO, "cd: no such file or directory: ", 32);
 		write(STDOUT_FILENO, dirname, sizeof(dirname));
 		write(STDOUT_FILENO, " \n", 3);
@@ -23,36 +22,40 @@ int	checkdir(char *dirname)
 
 int	edit_env(t_shell *this, char *dest_path, char *old_path)
 {
+    char tmp[1024];
 	if (chdir(dest_path) < 0)
 	{
 		write(STDOUT_FILENO, "cd: no such file or directory: ", 32);
 		write(STDOUT_FILENO, dest_path, sizeof(dest_path));
-		write(STDOUT_FILENO, " \n", 3);
-		exit(1);
+		write(STDOUT_FILENO, "\n", 1);
+		return 0;
 	}
     if (dest_path == NULL)
         dest_path = strdup("");
     if (old_path == NULL)
         old_path = strdup("");
-	this->env.replace_by_key(&this->env, "PWD", strdup(dest_path));
-	this->env.replace_by_key(&this->env, "OLDPWD", strdup(old_path));
+    getcwd(tmp, 1024);
+	this->env.replace_by_key(&this->env, "PWD", strdup(tmp), &free);
+	//this->env.replace_by_key(&this->env, "OLDPWD", strdup(old_path), &free);
 	return (1);
 }
 
 void	cmd_cd(t_shell *this, t_node *head)
 {
-	t_array_iterator	*iterator;
 	t_string            dest_path;
 	t_string            oldpath;
-	t_string            tmp;
 
-	dest_path = (char *) head->args.get(&head->args, 0);
+
+    if (head->args.index > 0)
+	dest_path = (char *)((t_token*) head->args.get(&head->args, 0))->value;
+    else
+       dest_path = NULL;
 	oldpath = (char *) this->env.find_by_key(this->env, "PWD");
-	if (dest_path == NULL)
+    if (dest_path == NULL)
         dest_path = this->env.find_by_key(this->env , "HOME");
     if (dest_path == NULL)
         return;
-    edit_env(this, dest_path, oldpath);
+        edit_env(this, dest_path, oldpath);
 }
 
 void	cmd_pwd(t_shell *this)
