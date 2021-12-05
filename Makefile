@@ -12,19 +12,22 @@ SRC = $(shell find ./src -type  f -name *.c)
 all: $(NAME)
 
 $(NAME): $(ARRAY_LIST)
-	gcc $(SRC) $(ARRAY_LIST) -g -I ./headers -o $(NAME) -lreadline #-fsanitize=address
+	@gcc $(SRC) $(ARRAY_LIST) -g -I ./headers -o $(NAME) -lreadline -I/goinfre/aait-ham/.brew/opt/readline/include -L/goinfre/aait-ham/.brew/opt/readline/lib  -fsanitize=address
 
 $(ARRAY_LIST):
-	make -C  $(ARRAY_LIST_PATH)
+	@make -C  $(ARRAY_LIST_PATH)
 
 clean:
-	rm -rf *.o
-	make fclean -C $(ARRAY_LIST_PATH)
+	@rm -rf *.o
+	@make fclean -C $(ARRAY_LIST_PATH)
 
 array_list_re:
-	make re -C  $(ARRAY_LIST_PATH)
+	@make re -C  $(ARRAY_LIST_PATH)
 
 fclean: clean
-	rm -rf $(NAME)
+	@rm -rf $(NAME)
 
 re: fclean    $(NAME)
+
+run: re
+	@./$(NAME)

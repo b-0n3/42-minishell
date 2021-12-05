@@ -89,8 +89,10 @@ typedef struct s_array_iterator{
 	struct	s_array_list	*(*clone)(struct s_array_list *this,
 			t_bool is_not_primitive, void *(*__clone)(void *item));
     void *(*find_by_key)(struct s_array_list this, t_string  key);
+    t_bool (*replace_by_key)(struct s_array_list *this, t_string key, void *new_one);
 }	;
 
+t_bool map_replace_by_key(struct s_array_list *this, t_string key, void *new_one);
 t_array_list	*new_array_list(t_array_list *this,
 					size_t first_size, size_t sizeofit);
 t_bool			push(t_array_list *this, void *value,

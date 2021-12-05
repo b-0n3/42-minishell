@@ -85,10 +85,13 @@ typedef  struct s_env_ext{
     int q;
     size_t length;
     int expand;
+    int exit_code;
     t_string cmd;
     t_array_list  *env;
     t_string (*next)(struct s_env_ext *this);
     t_bool  (*has_next)(struct s_env_ext *this);
+
+
 } t_env_ext;
 
 typedef struct s_file{
@@ -103,7 +106,7 @@ typedef struct s_token{
     t_string value;
     t_token_type type;
     char    start_with;
-    struct s_token *(*expand)(struct s_token *this, t_array_list env);
+    struct s_token *(*expand)(struct s_token *this,int exit_code, t_array_list env);
     t_node *(*to_node)(struct  s_token *this);
     void (*to_string)(struct s_token *this);
     t_file *(*to_file)(struct s_token *this);
@@ -148,7 +151,7 @@ t_bool node_is_operation(t_node *this);
 t_bool node_need_a_file(t_node *this);
 void  node_free(t_node *this);
 void node_to_string(t_node *this);
-t_token  *token_expand_env(t_token *this, t_array_list env);
-void new_env_ext(t_env_ext *this,t_array_list  *env, char *cmd);
+t_token  *token_expand_env(t_token *this,int exit_code , t_array_list env);
+void new_env_ext(t_env_ext *this,t_array_list  *env, char *cmd, int exit_code);
 t_bool  env_ext_has_next(t_env_ext *this);
 #endif

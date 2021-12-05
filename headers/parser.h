@@ -31,6 +31,7 @@ struct s_shell
     size_t     cursor;
     t_bool     dqout;
     t_bool     quot;
+    t_string *(*env_to_arr)(struct s_shell *this);
     t_bool (*unclosed)(struct s_shell *this);
     void (*init)(struct  s_shell *this, t_string line);
     t_bool (*has_next_token)(struct s_shell *this);
@@ -41,6 +42,7 @@ struct s_shell
     void (*free)(struct s_shell *this);
 };
 
+t_string *shell_env_to_arr(t_shell *this);
 void create_shell(t_shell *this, t_string *env);
 void init_shell(t_shell *this, t_string line);
 void shell_loop(t_shell *this);

@@ -63,7 +63,7 @@ void *do_on_next_p_(t_array_iterator *this, void *(*f)(void *, void *, void *), 
     ptr = NULL;
     if (this != NULL)
     {
-        ptr = f(this->next(this), p_item ,this->list->get(this->list, this->next_index ));
+        ptr = f(this->next(this), p_item ,this->list->get(this->list, this->next_index  ));
     }
     return ptr;
 }

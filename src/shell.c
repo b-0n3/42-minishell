@@ -3,6 +3,7 @@
 //
 
 #include "minishell.h"
+extern int mood;
 t_string split_env(t_string env)
 {
 	int i;
@@ -45,7 +46,9 @@ void create_shell(t_shell *this, t_string *env)
 	this->unclosed = &shell_quot_unclosed;
     this->execute = &shell_execute;
 	this->loop = &shell_loop;
+    this->env_to_arr = &shell_env_to_arr;
 	this->free = &shell_free;
+    this->exit_code = 0;
 }
 
 void init_shell(t_shell *this ,t_string line)
@@ -56,12 +59,6 @@ void init_shell(t_shell *this ,t_string line)
             if (this->parsing_error != NULL)
                 free(this->parsing_error);
 		}
-//		this->tokens = malloc(sizeof(t_array_list));
-//		new_array_list(this->tokens, 10, sizeof (t_token));
-//		this->nodes = malloc(sizeof(t_array_list));
-//		new_array_list(this->nodes, 10, sizeof (t_node));
-
-        this->exit_code = -1;
 		this->cursor = 0;
 		this->l_cursor = 0;
 		this->fresh = 0;
@@ -154,11 +151,11 @@ void split_it(t_array_list *this, t_string cmd, char ch)
     dq = 0;
     while(cmd[cursor] != '\0')
     {
-        if (cmd[cursor] == '\"' && !q)
-           dq = !dq;
-        if (cmd[cursor] == '\'' && !dq)
-            q = !q;
-        if (!q && !dq && cmd[cursor] == ch)
+//        if (cmd[cursor] == '\"' && !q)
+//           dq = !dq;
+//        if (cmd[cursor] == '\'' && !dq)
+//            q = !q;
+        if (cmd[cursor] == ch)
         {
             this->push(this, strndup(cmd + l_cursor, cursor - l_cursor ), sizeof(char *));
             while (cmd[cursor] == ch)
@@ -189,6 +186,7 @@ void *str_to_token(void *str)
 {
     return new_token((t_string )str, word);
 }
+
 t_node *token_to_node(t_token *this)
 {
 	t_node  *node;
@@ -216,35 +214,74 @@ t_node *token_to_node(t_token *this)
 	return node;
 }
 
+t_bool  inject_command(t_node *head , t_token *token)
+{
+    t_node  *tmp;
+    tmp = head;
+    while (tmp->left != NULL && tmp->left->need_a_file(tmp->left))
+        tmp = tmp->left;
+    if (tmp->left != NULL && tmp->left->word_type == command) {
+        tmp->left->args.push(&tmp->left->args, token, sizeof(t_token));
+        return (TRUE);
+    }else
+    {
+        tmp->left = token->to_node(token);
+        tmp->left->parent = tmp;
+        tmp->left->isleft = TRUE;
+    }
+    return (FALSE);
+}
+
+
 void add_file(t_shell  *this, t_node *head, t_token *token)
 {
-    if (this->parsing_error != NULL)
-            return ;
-	if (head->op_type == redirection) {
-        head->output_file = token->to_file(token);
-        if (head->output_file->open(head->output_file,O_WRONLY| O_CREAT | O_TRUNC,0644))
-            this->parsing_error = strdup(head->output_file->uri);
+
+    if (this->parsing_error != NULL) {
+        token->free(token);
+        return;
+    }if (head->op_type == redirection) {
+        if (head->output_file == NULL) {
+            head->output_file = token->to_file(token);
+            if (head->output_file->open(head->output_file, O_WRONLY | O_CREAT | O_TRUNC, 0644))
+                this->parsing_error = strdup(head->output_file->uri);
+        }
+        else if (!inject_command(head, token))
+            token->free(token);
+
     }
     else if (head->op_type == append)
     {
+        if (head->output_file == NULL) {
         head->output_file = token->to_file(token);
          if (head->output_file->open(head->output_file, O_CREAT | O_APPEND | O_WRONLY, 0644))
             this->parsing_error = strdup(head->output_file->uri);
+        }
+        else if (!inject_command(head, token))
+            token->free(token);
     }
     else if (head->op_type == input) {
-        head->input_file = token->to_file(token);
-        if (head->input_file->open(head->input_file, O_RDONLY, -1))
-            this->parsing_error = strdup(head->input_file->uri);
+        if (head->input_file == NULL) {
+            head->input_file = token->to_file(token);
+            if (head->input_file->open(head->input_file, O_RDONLY, -1))
+                this->parsing_error = strdup(head->input_file->uri);
+        }
+        else if (!inject_command(head, token))
+                token->free(token);
+
     }
     else
 	{
-		head->eof = strdup(token->value);
-		head->output_file = new_file("/tmp/B0N3_HEREDOC");
-        if (head->output_file->open(head->output_file,O_RDONLY | O_CREAT, 0644))
-            this->parsing_error = strdup(head->output_file->uri);
-	}
-	token->free(token);
-}
+        if (head->output_file == NULL) {
+            head->eof = strdup(token->value);
+            head->output_file = new_file("/tmp/B0N3_HEREDOC");
+            if (head->output_file->open(head->output_file,O_WRONLY | O_TRUNC | O_CREAT, 0644))
+                this->parsing_error = strdup(head->output_file->uri);
+        }
+        else if (!inject_command(head, token))
+            token->free(token);
+        }
+    }
+
 // cat hell | wc -l >> f1 | grep hell.js > f1
 t_node  *handle_operator(t_shell  *this, t_token  *token, t_node *head)
 {
@@ -274,6 +311,7 @@ t_node  *handle_operator(t_shell  *this, t_token  *token, t_node *head)
                 head->right->isleft = TRUE;
 				head->right->parent = operator;
 				head->right = operator;
+                operator->parent = head;
                 operator->isleft = FALSE;
 
 			}
@@ -282,6 +320,7 @@ t_node  *handle_operator(t_shell  *this, t_token  *token, t_node *head)
                 operator->isleft = FALSE;
                 head->right =operator;
                 head->right->parent = head;
+                operator->parent = head;
             }
 		}
 		else
@@ -304,10 +343,10 @@ t_node *handle_word(t_shell *this, t_token *token ,t_node *head)
 {
 	t_node *com;
 
-    token->expand(token, this->env);
+    token->expand(token,this->exit_code, this->env);
 	if (head != NULL && head->right != NULL && head->right->need_a_file(head->right))
 	{
-		add_file(this,head->right, token);
+        add_file(this,head->right, token);
 	}
 	else if (head != NULL && head->need_a_file(head))
 		add_file(this,head, token);
@@ -332,7 +371,7 @@ t_node *handle_word(t_shell *this, t_token *token ,t_node *head)
 		{
 			token = pre_get_next_token(this);
             if (token != NULL)
-               token->expand(token, this->env);
+               token->expand(token,this->exit_code, this->env);
 			if (token == NULL || token->type != word)
 				return handle_operator(this, token ,head);
 			com->args.push(&com->args, token , sizeof(t_token));
@@ -370,7 +409,7 @@ t_bool check_syntax(t_shell  *this, t_node *pointer)
         if (pointer->right != NULL && pointer->right->word_type == w_t_none)
         {
             pointer = pointer->right;
-            while(pointer != NULL && pointer->op_type != o_t_none)
+            while(pointer != NULL && pointer->op_type != o_t_none && !pointer->need_a_file(pointer))
                 pointer = pointer->left;
             if (pointer == NULL)
             {
@@ -381,7 +420,7 @@ t_bool check_syntax(t_shell  *this, t_node *pointer)
         if (pointer->left != NULL && pointer->left->word_type == w_t_none)
         {
             pointer = pointer->left;
-            while(pointer != NULL && pointer->op_type != o_t_none)
+            while(pointer != NULL && pointer->op_type != o_t_none&& !pointer->need_a_file(pointer))
                 pointer = pointer->right;
             if (pointer == NULL)
             {
@@ -455,12 +494,40 @@ exec_v *find_function(t_shell  *this , t_string value)
     return func;
 }
 
-t_bool  luanch(t_shell *this, t_node *head)
+void exec_heredoc(t_shell *this, t_node *head) {
+    char *buffer;
+    buffer = readline(">");
+    while (buffer != NULL && strcmp(buffer, head->eof) != 0)
+    {
+        write(head->output_file->fd, buffer, strlen(buffer));
+        write(head->output_file->fd, "\n", 1);
+        free(buffer);
+        buffer = readline(">");
+    }
+    if (buffer != NULL)
+        free(buffer);
+    close(head->output_file->fd);
+    exit(0);
+}
+
+t_bool  launch(t_shell *this, t_node *head)
 {
+    t_node *tmp;
     if (head == NULL)
         return TRUE;
     if (head->op_type == pipeline) {
         pipe(head->p);
+    }
+    if (head->op_type == heredoc)
+    {
+        head->pid = fork();
+        if (head->pid == 0)
+        {
+            exec_heredoc(this, head);
+        }else {
+            waitpid(head->pid, NULL, 0);
+           head->output_file->open(head->output_file,  O_RDONLY, -1);
+        }
     }
     else if (head->word_type == command)
     {
@@ -471,7 +538,6 @@ t_bool  luanch(t_shell *this, t_node *head)
             exit(1);
         }else {
             this->last_one = head->pid;
-            printf("this is pid {%d} for command %s", this->last_one, head->value);
             if (head->parent != NULL) {
                 if (head->parent->op_type == pipeline) {
                     if (!head->isleft) {
@@ -479,11 +545,20 @@ t_bool  luanch(t_shell *this, t_node *head)
                         close(head->parent->p[0]);
                     }
                 }
+                tmp = head->parent;
+                while (tmp->parent != NULL && tmp->parent->need_a_file(tmp->parent))
+                    tmp = tmp->parent;
+                if  (tmp->need_a_file(tmp)
+                        && tmp->parent != NULL && tmp->parent->op_type == pipeline)
+                {
+                    fprintf(stderr, "close in  %s \n", tmp->value);
+                    close(tmp->parent->p[1]);
+                    close(tmp->parent->p[0]);
+                }
             }
         }
-
     }
-    return luanch(this, head->left) && luanch(this, head->right);
+    return launch(this, head->left) && launch(this, head->right);
 }
 
 t_bool close_fds(t_shell *this, t_node *head)
@@ -495,8 +570,16 @@ t_bool close_fds(t_shell *this, t_node *head)
         close(head->p[0]);
         close(head->p[1]);
     }
+    else if (head->need_a_file(head))
+    {
+        if (head->output_file != NULL && head->output_file->exception == 0)
+            close(head->output_file->fd);
+        if (head->input_file != NULL && head->input_file->exception == 0)
+            close(head->input_file->fd);
+    }
     return close_fds(this, head->left) && close_fds(this, head->right);
 }
+
 t_bool  wait_for_all(t_shell *this, t_node *head)
 {
     int exi;
@@ -510,13 +593,48 @@ t_bool  wait_for_all(t_shell *this, t_node *head)
     return wait_for_all(this,head->left) && wait_for_all(this, head->right);
 }
 
+void  shell_execute(t_shell *this){
+    mood = 1;
+//    if (this->head->parent == NULL)
+//    {
+//
+//    }else {
+        launch(this, this->head);
+        wait_for_all(this, this->head);
+        waitpid(this->last_one, &this->exit_code, 0);
+    //}
+    close_fds(this, this->head);
 
-void shell_execute(t_shell *this){
-    luanch(this,this->head);
-    wait_for_all(this, this->head);
-    waitpid(this->last_one, &this->exit_code, 0);
+    mood = 0;
+}
 
-   close_fds(this, this->head);
+void *map_to_string(void *item)
+{
+    t_key_map *m;
+    t_string tmp;
+    m = (t_key_map *) item;
+    tmp = strdup(m->key);
+    tmp = ft_strjoin(tmp , "=");
+    return ft_strjoin(tmp, (char *)m->value);
+}
+t_string *shell_env_to_arr(t_shell *this)
+{
+    t_array_iterator *iter;
+    t_string  *arr;
+    int i;
+
+    i = 0;
+    if (this == NULL)
+        return (NULL);
+    arr = malloc(sizeof (char *) *(this->env.index + 1));
+    iter = this->env.iterator(&this->env);
+    while (iter->has_next(iter))
+    {
+        arr[i]= iter->do_on_next(iter,&map_to_string);
+        i++;
+    }
+    arr[i] =NULL;
+    return (arr);
 }
 
 void shell_loop(t_shell *this)
@@ -533,8 +651,10 @@ void shell_loop(t_shell *this)
 		else
 			perror(this->parsing_error);
 		// execute command
+        add_history(line);
 		line = readline("IM->B0N3$>");
 	}
+    this->free(this);
     // @Todo: call exit
 }
 

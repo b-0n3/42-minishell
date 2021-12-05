@@ -1,0 +1,17 @@
+2
+B0N3
+Makefile
+bash.bnf
+f
+f1
+f2
+f3
+f4
+fs
+headers
+i5
+lib
+minishell
+minishell.dSYM
+s
+src

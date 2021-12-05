@@ -216,6 +216,22 @@ t_string env_ext_next(t_env_ext *this) {
         this->cursor++;
         this->l_cursor = this->cursor;
     }
+    if (this->cmd[this->cursor] == '$' && (this->cmd[this->cursor +1] == '?' || this->cmd[this->cursor + 1] == '$'))
+    {
+        this->cursor++;
+        if(this->cmd[this->cursor] == '?')
+        {
+            this->cursor++;
+            this->l_cursor = this->cursor;
+            return ft_itoa(this->exit_code % 255);
+        }
+        else {
+            this->cursor++;
+            this->l_cursor = this->cursor;
+            return strdup("pid not found");
+        }
+        }
+
     if (this->cmd[this->cursor] == '$' && this->expand && !is_digit(this->cmd[this->cursor + 1])) {
         i = this->cursor + 1;
         while (this->cmd[i] != '\0' && is_allowed_in_env(this->cmd[i]))
@@ -240,10 +256,11 @@ t_string env_ext_next(t_env_ext *this) {
     return this->next(this);
 }
 
-void new_env_ext(t_env_ext *this, t_array_list *env, char *cmd) {
+void new_env_ext(t_env_ext *this, t_array_list *env, char *cmd, int exit_code ) {
     this->env = env;
     this->l_cursor = 0;
     this->cursor = 0;
+    this->exit_code = exit_code;
     this->q = 0;
     this->length = strlen(cmd);
     this->dq = 0;
@@ -253,16 +270,17 @@ void new_env_ext(t_env_ext *this, t_array_list *env, char *cmd) {
     this->next = &env_ext_next;
 }
 
-t_token *token_expand_env(t_token *this, t_array_list env) {
+t_token *token_expand_env(t_token *this,int exit_code, t_array_list env) {
     t_env_ext env_ext;
     t_string t;
     t_string tmp;
-    new_env_ext(&env_ext, &env, this->value);
+    new_env_ext(&env_ext, &env, this->value, exit_code);
     t = strdup("");
     while (env_ext.has_next(&env_ext)) {
         tmp = env_ext_next(&env_ext);
         if (tmp != NULL) {
             t = ft_strjoin(t, tmp);
+            free(tmp);
         }
 
     }

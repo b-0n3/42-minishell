@@ -12,6 +12,7 @@
 ////        line = readline(" $>");
 ////    }
 //}
+int mood;
 void print_map(void *item) {
     t_key_map *m;
 
@@ -22,11 +23,25 @@ void print_map(void *item) {
 }
 // catt hello | cd ..  | pwd > file
 //     ^
+void quit_handler(int num)
+{
+    if (mood == 0) {
+        write(1, "\n", 1);
+        rl_on_new_line();
+        rl_replace_line("", 0);
+        rl_redisplay();
+    }
+}
 
 int main(int argc, t_string *argv, t_string *env) {
     t_shell shell;
     argc = 1;
     argv = NULL;
+    mood = 0;
+    signal(SIGQUIT,&quit_handler);
+    signal(SIGINT,&quit_handler);
+
+
     create_shell(&shell, env);
     shell.env.is_map = TRUE;
 
