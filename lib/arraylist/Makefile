@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: aait-ham <marvin@42.fr>                    +#+  +:+       +#+         #
+#    By: am-khant <am-khant@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2021/02/16 15:29:42 by aait-ham          #+#    #+#              #
-#    Updated: 2021/02/16 15:29:44 by aait-ham         ###   ########.fr        #
+#    Updated: 2021/12/05 02:28:35 by am-khant         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -22,7 +22,8 @@ SRC = 	./srcs/array_list.c \
 		./srcs/array_list_operation.c \
 		./srcs/array_list_pull.c \
 		./srcs/array_list_sort.c \
-		./srcs/iterator.c
+		./srcs/iterator.c \
+		./srcs/iterator_suite.c
 
 INC = ./includes/
 
