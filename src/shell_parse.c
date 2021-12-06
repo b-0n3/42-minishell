@@ -6,7 +6,7 @@
 /*   By: am-khant <am-khant@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/06 07:02:28 by am-khant          #+#    #+#             */
-/*   Updated: 2021/12/06 08:18:11 by am-khant         ###   ########.fr       */
+/*   Updated: 2021/12/06 12:12:27 by am-khant         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,11 +53,11 @@ void	print_node(t_node *node)
 	print_node(node->right);
 }
 
-exec_v	*find_function(t_shell *this, t_string value)
+t_exec_v	*find_function(t_shell *this, t_string value)
 {
-	exec_v	*func;
+	t_exec_v	*func;
 
-	func = (exec_v *)this->exec_pool.find_by_key(this->exec_pool, value);
+	func = (t_exec_v *)this->exec_pool.find_by_key(this->exec_pool, value);
 	if (func == NULL)
 		func = &exec_other;
 	return (func);

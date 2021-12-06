@@ -6,7 +6,7 @@
 /*   By: am-khant <am-khant@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/06 07:48:17 by am-khant          #+#    #+#             */
-/*   Updated: 2021/12/06 10:05:29 by am-khant         ###   ########.fr       */
+/*   Updated: 2021/12/06 12:12:27 by am-khant         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,7 @@ t_string			find_command_in_path(t_shell *this, t_node *cmd);
 t_string			*node_to_execv_args(t_node *node);
 void				exec_other(t_shell *this, t_node *node);
 void				init_exec_builtins(t_shell *this);
-t_key_map			*new_func_map(t_string key, exec_v *func);
+t_key_map			*new_func_map(t_string key, t_exec_v *func);
 t_op_type			find_operation_type(t_string value);
 t_file				*token_to_file(t_token *this);
 t_file				*new_file(t_string uri);
@@ -75,7 +75,7 @@ t_node				*handle_word(t_shell *this, t_token *token, t_node *head);
 t_bool				check_syntax(t_shell *this, t_node *pointer);
 t_bool				shell_parse(t_shell *this);
 void				print_node(t_node *node);
-exec_v				*find_function(t_shell *this, t_string value);
+t_exec_v				*find_function(t_shell *this, t_string value);
 void				exec_heredoc(t_shell *this, t_node *head);
 t_bool				launch(t_shell *this, t_node *head);
 t_bool				close_fds(t_shell *this, t_node *head);
@@ -104,6 +104,7 @@ t_bool				env_ext_has_next(t_env_ext *this);
 t_string			env_ext_next(t_env_ext *this);
 void				new_env_ext(t_env_ext *this, t_array_list *env,
 						char *cmd, int exit_code);
-t_token				*token_expand_env(t_token *this, int exit_code, t_array_list env);
+t_token				*token_expand_env(t_token *this,
+						int exit_code, t_array_list env);
 t_token				*shell_get_next_token(t_shell *this);					
 #endif

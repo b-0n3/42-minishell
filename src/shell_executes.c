@@ -6,7 +6,7 @@
 /*   By: am-khant <am-khant@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/06 07:11:08 by am-khant          #+#    #+#             */
-/*   Updated: 2021/12/06 07:15:06 by am-khant         ###   ########.fr       */
+/*   Updated: 2021/12/06 11:10:07 by am-khant         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,7 +55,7 @@ void	shell_execute(t_shell *this)
 	if ((this->head->parent == NULL
 			|| this->head->parent->need_a_file(this->head->parent))
 		&& is_built_in(this->head->value))
-		find_function(this, this->head->value);
+		find_function(this, this->head->value)(this, this->head);
 	else
 	{
 		launch(this, this->head);

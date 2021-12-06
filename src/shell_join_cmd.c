@@ -6,11 +6,13 @@
 /*   By: am-khant <am-khant@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/06 06:31:12 by am-khant          #+#    #+#             */
-/*   Updated: 2021/12/06 06:32:57 by am-khant         ###   ########.fr       */
+/*   Updated: 2021/12/06 11:08:27 by am-khant         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
+
+extern int	g_mood;
 
 t_bool	has_next_token(t_shell *this)
 {

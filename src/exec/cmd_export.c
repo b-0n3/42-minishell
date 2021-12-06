@@ -6,7 +6,7 @@
 /*   By: am-khant <am-khant@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/06 09:44:57 by am-khant          #+#    #+#             */
-/*   Updated: 2021/12/06 09:50:09 by am-khant         ###   ########.fr       */
+/*   Updated: 2021/12/06 11:01:43 by am-khant         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,6 @@ void	cmd_export(t_shell *this, t_node *head)
 	if ((char *) this->env.find_by_key(this->env, map->key) == NULL)
 		this->env.push(&this, map, sizeof(t_key_map *));
 	else
-		this->env.rmplc_by_key(this->env, map->key, map->value,
+		this->env.replace_by_key(&this->env, map->key, map->value,
 			strlen(map->value));
 }

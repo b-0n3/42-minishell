@@ -6,7 +6,7 @@
 /*   By: am-khant <am-khant@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/06 06:18:25 by am-khant          #+#    #+#             */
-/*   Updated: 2021/12/06 10:05:45 by am-khant         ###   ########.fr       */
+/*   Updated: 2021/12/06 12:12:27 by am-khant         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,7 @@ void	init_exec_builtins(t_shell *this)
 	}
 }
 
-t_key_map	*new_func_map(t_string key, exec_v *func)
+t_key_map	*new_func_map(t_string key, t_exec_v *func)
 {
 	t_key_map	*this;
 
