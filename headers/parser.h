@@ -64,6 +64,8 @@ void exec_other(t_shell *this, t_node *node);
  void init_exec_builtins(t_shell *this);
  t_string *node_to_execv_args(t_node *node);
  t_array_iterator *split(t_string cmd, char ch);
+ t_key_map *env_to_key_map(t_string str);
+
  // cat f1 |  grep line >>  f1
 
 /**

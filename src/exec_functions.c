@@ -7,38 +7,107 @@
 
 void exec_echo(t_shell *this, t_node *node)
 {
-    printf("echo command \n");
+    int in;
+    int out;
+    out = dup(STDOUT_FILENO);
+    in  = dup(STDIN_FILENO);
+    init_fds(node);
+    cmd_echo(node);
+    dup2(out ,STDOUT_FILENO);
+    dup2(in , STDIN_FILENO);
+    close(in);
+    close(out);
+    this->exit_code = 0;
 }
 
 void exec_cd(t_shell *this, t_node *node)
 {
+    int in;
+    int out;
+    out = dup(STDOUT_FILENO);
+    in  = dup(STDIN_FILENO);
+    init_fds(node);
     cmd_cd(this, node);
+    dup2(out ,STDOUT_FILENO);
+    dup2(in , STDIN_FILENO);
+    close(in);
+    close(out);
 }
 
 void exec_pwd(t_shell *this, t_node *node)
 {
+    int in;
+    int out;
+    out = dup(STDOUT_FILENO);
+    in  = dup(STDIN_FILENO);
+    init_fds(node);
     cmd_pwd(this);
-    node = node;
+    dup2(out ,STDOUT_FILENO);
+    dup2(in , STDIN_FILENO);
+    close(in);
+    close(out);
+    this->exit_code = 0;
 }
 
 void exec_export(t_shell *this, t_node *node)
 {
-    printf("export command \n");
+    int in;
+    int out;
+    out = dup(STDOUT_FILENO);
+    in  = dup(STDIN_FILENO);
+    init_fds(node);
+    cmd_export(this, node);
+    dup2(out ,STDOUT_FILENO);
+    dup2(in , STDIN_FILENO);
+    close(in);
+    close(out);
+    this->exit_code = 0;
 }
 
 void exec_unset(t_shell *this, t_node *node)
 {
-    printf("unset command \n");
+    int in;
+    int out;
+    out = dup(STDOUT_FILENO);
+    in  = dup(STDIN_FILENO);
+    init_fds(node);
+    cmd_unset(this, node);
+    dup2(out ,STDOUT_FILENO);
+    dup2(in , STDIN_FILENO);
+    close(in);
+    close(out);
+    this->exit_code = 0;
 }
 
 void exec_env(t_shell *this, t_node *node)
 {
-    printf("env command \n");
+    int in;
+    int out;
+
+    out = dup(STDOUT_FILENO);
+    in = dup(STDIN_FILENO);
+    init_fds(node);
+    cmd_env(this);
+    dup2(out, STDOUT_FILENO);
+    dup2(in, STDIN_FILENO);
+    close(in);
+    close(out);
+    this->exit_code = 0;
 }
 
 void exec_exit(t_shell *this, t_node *node)
 {
-    printf("exit command \n");
+    int in;
+    int out;
+
+    out = dup(STDOUT_FILENO);
+    in = dup(STDIN_FILENO);
+    init_fds(node);
+    cmd_exit(this, node);
+    dup2(out, STDOUT_FILENO);
+    dup2(in, STDIN_FILENO);
+    close(in);
+    close(out);
 }
 
 t_string find_command_in_path(t_shell  *this,t_node *cmd)
@@ -102,82 +171,11 @@ t_string *node_to_execv_args(t_node *node)
     return (ret);
 }
 
-extern char **environ;
-
 void     exec_other(t_shell *this, t_node  *node)
 {
     t_string *cmd = node_to_execv_args(node);
-    t_node  *tmp;
-    if (node->parent != NULL) {
-        if (node->isleft)
-        {
-            if (node->parent->op_type == pipeline) {
-                close(node->parent->p[0]);
-                dup2(node->parent->p[1], STDOUT_FILENO);
-                close(node->parent->p[1]);
-            }
-            else if (node->parent->op_type == input)
-            {
-                dup2(node->parent->input_file->fd, STDIN_FILENO);
-                close(node->parent->input_file->fd);
-            }
-            else if (node->parent->op_type == heredoc)
-            {
-                dup2(node->parent->output_file->fd, STDIN_FILENO);
-                close(node->parent->output_file->fd);
-                if (node->parent->parent !=NULL)
-                {
-                    if (node->parent->parent->op_type == pipeline)
-                    {
-                        close(node->parent->parent->p[0]);
-                        dup2(node->parent->parent->p[1], STDOUT_FILENO);
-                        close(node->parent->parent->p[1]);
-                    }
-                    else if (node->parent->parent->op_type == redirection || node->parent->parent->op_type == append)
-                    {
-                        tmp = node->parent->parent;
-                        while (tmp->parent != NULL && tmp->need_a_file(tmp))
-                            tmp = tmp->parent;
-                        dup2(tmp->output_file->fd, STDOUT_FILENO);
-                        close(tmp->output_file->fd);
-                    }
 
-                }
-            }
-           else if (node->parent->op_type == redirection || node->parent->op_type == append) {
-                tmp = node->parent;
-
-                while (tmp->parent != NULL && tmp->parent->need_a_file(tmp->parent)) {
-                    fprintf(stderr, "loop %s \n", tmp->output_file->uri);
-                    tmp = tmp->parent;
-                }
-                    if (tmp->parent != NULL && tmp->parent->op_type == pipeline)
-                {
-                    fprintf(stderr, "sadfsadf %s \n", tmp->parent->value);
-                    close(tmp->parent->p[1]);
-                    dup2(tmp->parent->p[0], STDIN_FILENO);
-                    close(tmp->parent->p[0]);
-                }
-                fprintf(stderr, "losadfop %s \n", tmp->output_file->uri);
-                dup2(tmp->output_file->fd, STDOUT_FILENO);
-              //  close(tmp->output_file->fd);
-            }
-
-        }
-        else
-        {
-            close(node->parent->p[1]);
-            dup2(node->parent->p[0], STDIN_FILENO);
-            close(node->parent->p[0]);
-            if (node->parent->parent != NULL)
-            {
-                close(node->parent->parent->p[0]);
-                dup2(node->parent->parent->p[1], STDOUT_FILENO);
-                close(node->parent->parent->p[1]);
-            }
-
-        }
-    }
+     init_fds(node);
      find_command_in_path(this, node);
 
     if (execve(node->value, cmd , this->env_to_arr(this)) == -1) {

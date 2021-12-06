@@ -51,14 +51,41 @@ t_array_list	*new_array_list(
     return (this);
 }
 
+t_key_map *new_key_map(t_string key, void *value)
+{
+    t_key_map *map;
+
+    map = malloc(sizeof(t_key_map));
+    if (map == NULL)
+        return NULL;
+    map->key = key;
+    map->value = value;
+    return (map);
+}
+
 t_bool map_replace_by_key(t_array_list *this, t_string key, void *new_one, void (*del)(void *item))
 {
-    t_key_map * map = this->find_by_key(*this, key);
-    if (map == NULL)
-        return(FALSE);
-    del = NULL;
-    //del(map->value);
-    map->value = new_one;
+    t_key_map *old;
+    size_t i;
+
+    i = 0;
+    old = NULL;
+            while (i < this->index) {
+                old = (t_key_map *) this->get(this, i);
+
+                if (old != NULL && !strcmp(key, old->key)) {
+                    if (new_one == NULL)
+                        break;
+                    if (old->value != NULL)
+                         del(old->value);
+                    old->value = new_one;
+                    return (TRUE);
+                }
+                old = NULL;
+                i++;
+            }
+    if (old == NULL && i >= this->index)
+        this->push(this, new_key_map(strdup(key), new_one), sizeof (t_key_map));
     return TRUE;
 }
 

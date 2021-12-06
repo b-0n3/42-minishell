@@ -21,7 +21,10 @@ t_key_map *env_to_key_map(t_string str)
 	if (map == NULL)
 		return (NULL);
 	map->key = split_env(str);
-	map->value = strdup( str + strlen(map->key) + 1);
+    if (str[strlen(map->key)] != '\0' && str[strlen(map->key)+ 1] !='\0')
+	    map->value = strdup( str + strlen(map->key) + 1);
+    else
+        map->value = NULL;
 	return map;
 }
 
@@ -29,7 +32,7 @@ void push_env(t_array_list *list,t_string  *env)
 {
 	while (*env != NULL)
 	{
-		list->push(list, env_to_key_map(*env), sizeof(t_key_map *));
+		list->push(list, env_to_key_map(*env), sizeof(t_key_map));
 		env++;
 	}
 }
@@ -37,7 +40,7 @@ void push_env(t_array_list *list,t_string  *env)
 void create_shell(t_shell *this, t_string *env)
 {
 	this->parse = &shell_parse;
-	new_array_list(&this->env, 10, sizeof(char *));
+	new_array_list(&this->env, 10, sizeof(t_key_map));
 	push_env(&this->env, env);
 	this->fresh = TRUE;
 	this->init = &init_shell;
@@ -49,6 +52,7 @@ void create_shell(t_shell *this, t_string *env)
     this->env_to_arr = &shell_env_to_arr;
 	this->free = &shell_free;
     this->exit_code = 0;
+    init_exec_builtins(this);
 }
 
 void init_shell(t_shell *this ,t_string line)
@@ -58,17 +62,22 @@ void init_shell(t_shell *this ,t_string line)
 		{
             if (this->parsing_error != NULL)
                 free(this->parsing_error);
+            node_free(this->head);
 		}
 		this->cursor = 0;
 		this->l_cursor = 0;
 		this->fresh = 0;
 		this->commmand = line;
-        this->parsing_error = NULL;
+        while(this->commmand[this->cursor] == ' ') {
+            this->cursor++;
+            this->l_cursor++;
+        }
+            this->parsing_error = NULL;
 		this->command_len = strlen(this->commmand);
 		//        if (!this->unclosed(this)) {
 		this->dqout = FALSE;
 		this->quot = FALSE;
-        init_exec_builtins(this);
+
 		//        }
 	}
 
@@ -111,6 +120,7 @@ void print_token(void *item)
 		printf("\t{\n\t\"type\":\"%s\",\n \t\"value\":\"%s\"\n}\n", m->type == op? "OP": "WORD", m->value);
 	}
 }
+// todo : print unclosed quotes and return to readline
 t_token *pre_get_next_token(t_shell *this)
 {
 	t_token *token = NULL;
@@ -151,10 +161,6 @@ void split_it(t_array_list *this, t_string cmd, char ch)
     dq = 0;
     while(cmd[cursor] != '\0')
     {
-//        if (cmd[cursor] == '\"' && !q)
-//           dq = !dq;
-//        if (cmd[cursor] == '\'' && !dq)
-//            q = !q;
         if (cmd[cursor] == ch)
         {
             this->push(this, strndup(cmd + l_cursor, cursor - l_cursor ), sizeof(char *));
@@ -551,7 +557,6 @@ t_bool  launch(t_shell *this, t_node *head)
                 if  (tmp->need_a_file(tmp)
                         && tmp->parent != NULL && tmp->parent->op_type == pipeline)
                 {
-                    fprintf(stderr, "close in  %s \n", tmp->value);
                     close(tmp->parent->p[1]);
                     close(tmp->parent->p[0]);
                 }
@@ -594,22 +599,27 @@ t_bool  wait_for_all(t_shell *this, t_node *head)
 }
 t_bool is_built_in(t_string n)
 {
-    return !strcmp(n, "cd") || !strcmp(n ,"pwd");
+    return !strcmp(n, "cd") || !strcmp(n ,"pwd")  || !strcmp(n ,"echo")
+        || !strcmp(n, "export") || !strcmp(n, "env") || !strcmp(n, "unset")
+        || !strcmp(n, "exit");
 }
 
 void  shell_execute(t_shell *this){
     mood = 1;
+    if (this->head == NULL)
+        return ;
     if ((this->head->parent == NULL || this->head->parent->need_a_file(this->head->parent))
     && is_built_in(this->head->value) )
     {
+        mood = 2;
         find_function(this, this->head->value)(this, this->head);
+        mood = 1;
     }else {
         launch(this, this->head);
         wait_for_all(this, this->head);
         waitpid(this->last_one, &this->exit_code, 0);
     }
     close_fds(this, this->head);
-
     mood = 0;
 }
 
@@ -617,15 +627,20 @@ void *map_to_string(void *item)
 {
     t_key_map *m;
     t_string tmp;
+    if (item == NULL)
+        return NULL;
     m = (t_key_map *) item;
     tmp = strdup(m->key);
     tmp = ft_strjoin(tmp , "=");
-    return ft_strjoin(tmp, (char *)m->value);
+    if (m->value != NULL)
+        tmp = ft_strjoin(tmp, (char *)m->value);
+    return tmp;
 }
 t_string *shell_env_to_arr(t_shell *this)
 {
     t_array_iterator *iter;
     t_string  *arr;
+    t_string ss;
     int i;
 
     i = 0;
@@ -635,7 +650,10 @@ t_string *shell_env_to_arr(t_shell *this)
     iter = this->env.iterator(&this->env);
     while (iter->has_next(iter))
     {
-        arr[i]= iter->do_on_next(iter,&map_to_string);
+        ss = iter->do_on_next(iter,&map_to_string);
+        if (ss == NULL)
+            continue;
+        arr[i] = ss;
         i++;
     }
     arr[i] =NULL;
@@ -647,7 +665,7 @@ void shell_loop(t_shell *this)
 	t_string line;
 
 	line = readline("IM->B0N3$>");
-	while (line != NULL && strcmp(line,  "exit") != 0) {
+	while (line != NULL) {
 		this->init(this, line);
 		if (this->parse(this))
 		{
@@ -656,7 +674,9 @@ void shell_loop(t_shell *this)
 		else
 			perror(this->parsing_error);
 		// execute command
+        free(this->commmand);
         add_history(line);
+
 		line = readline("IM->B0N3$>");
 	}
     this->free(this);
@@ -666,5 +686,9 @@ void shell_loop(t_shell *this)
 void shell_free(t_shell *this)
 {
 
+   // this->env.free(&this->env, &)
+    this->exec_pool.free(&this->exec_pool, &free);
+    free(this->commmand);
+    node_free(this->head);
 }
 

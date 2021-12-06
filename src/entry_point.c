@@ -13,18 +13,12 @@
 ////    }
 //}
 int mood;
-void print_map(void *item) {
-    t_key_map *m;
-
-    if (item != NULL) {
-        m = (t_key_map *) item;
-        printf("{\n\"key\":\"%s\",\n \"value\":\"%s\"\n}", m->key, (char *) m->value);
-    }
-}
 // catt hello | cd ..  | pwd > file
 //     ^
 void quit_handler(int num)
 {
+    if (num == SIGQUIT)
+        return;
     if (mood == 0) {
         write(1, "\n", 1);
         rl_on_new_line();

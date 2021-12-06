@@ -86,6 +86,9 @@ void  node_free(t_node *this)
         return;
     node_free(this->left);
     node_free(this->right);
+    free(this->value);
+    this->args.free(&this->args, &token_free);
+
     free(this);
 }
 

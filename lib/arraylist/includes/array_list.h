@@ -70,7 +70,8 @@ typedef struct s_array_iterator{
 	void					(*foreach)(struct s_array_list *this,
 			void (*f)(void *item));
 	void					(*delete_if)(struct s_array_list *this,
-			t_bool (*cond)(void *item), void (*fe)(void *item));
+            t_bool (*cond)(void *item, void *som),
+            void (*fe)(void *item), void *som);
 	void					(*sort)(struct s_array_list *this,
 			int					(*cond)(void *item1, void *item2),
 			int l, int r);
@@ -104,7 +105,8 @@ t_bool			check_data_type(t_array_list *this,
 t_bool			new_array_double_size(t_array_list *this);
 void			foreach(t_array_list *this, void (*f)(void *item));
 void			delete_if(t_array_list *this,
-					t_bool(*cond)(void *item), void (*fe)(void *item));
+                          t_bool (*cond)(void *item, void *som),
+                          void (*fe)(void *item), void *som);
 void			sort(t_array_list *this,
 					int (*cond)(void *item1, void *item2), int l, int r);
 void			array_list_free(t_array_list *this,

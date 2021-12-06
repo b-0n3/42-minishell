@@ -13,15 +13,17 @@
 #include "array_list.h"
 
 void	delete_if_free(t_array_list *this,
-			t_bool (*cond)(void *item),
-	 		void (*fe)(void *item), size_t ixx)
+        t_bool (*cond)(void *item, void *som),
+	 		void (*fe)(void *item),
+             size_t ixx,
+             void *som)
 {
 	size_t	i;
 
 	i = 0;
 	while (i < this->index)
 	{
-		if (!cond(this->arr[i]))
+		if (!cond(this->arr[i], som))
 			ixx++;
 		i++;
 	}
@@ -36,8 +38,8 @@ void	delete_if_free(t_array_list *this,
 }
 
 void	delete_if(t_array_list *this,
-			t_bool (*cond)(void *item),
-			void (*fe)(void *item))
+			t_bool (*cond)(void *item, void *som),
+			void (*fe)(void *item), void *som)
 {
 	size_t	i;
 	size_t	x;
@@ -48,13 +50,13 @@ void	delete_if(t_array_list *this,
 	while (i < this->index)
 	{
 		x = i + 1;
-		if (cond(this->arr[i]))
+		if (cond(this->arr[i], som))
 		{
 			if (fe != NULL)
 				fe(this->arr[i]);
 			while (x++ < this->index)
 			{
-				if (!cond(this->arr[x]))
+				if (!cond(this->arr[x], som))
 				{
 					this->swap(&(this->arr[i]), &(this->arr[x]));
 					break ;
@@ -63,5 +65,5 @@ void	delete_if(t_array_list *this,
 		}
 		i++;
 	}
-	delete_if_free(this, cond, fe, ixx);
+	delete_if_free(this, cond, fe, ixx, som);
 }
