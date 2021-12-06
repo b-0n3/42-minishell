@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   array_list_delete_if.c                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aait-ham <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: am-khant <am-khant@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/02/09 19:36:27 by aait-ham          #+#    #+#             */
-/*   Updated: 2021/07/11 19:08:55 by aait-ham         ###   ########.fr       */
+/*   Updated: 2021/12/06 07:54:09 by am-khant         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 void	delete_if_free(t_array_list *this,
 			t_bool (*cond)(void *item),
-	 		void (*fe)(void *item), size_t ixx)
+			void (*fe)(void *item), size_t ixx)
 {
 	size_t	i;
 

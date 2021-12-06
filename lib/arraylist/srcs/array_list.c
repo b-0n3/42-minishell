@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   array_list.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aait-ham <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: am-khant <am-khant@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2021/02/09 19:37:36 by aait-ham          #+#    #+#             */
-/*   Updated: 2021/07/11 19:09:45 by aait-ham         ###   ########.fr       */
+/*   Created: 2021/12/06 07:55:11 by am-khant          #+#    #+#             */
+/*   Updated: 2021/12/06 07:58:04 by am-khant         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@
  ***  @param first_size : array initial size
  ***  @param __sizeofit : sizeof element
  ***  @ param this :  ! please make sure the given pointer  is already
- ***               allocated or expect a  bus error
+ ***			   allocated or expect a  bus error
  */
 
 t_array_list	*new_array_list(
@@ -44,40 +44,43 @@ t_array_list	*new_array_list(
 	this->pop_i = &pop_index;
 	this->swap_i = &swap_i;
 	this->filter = &filter_list;
-    this->replace_by_key = &map_replace_by_key;
+	this->replace_by_key = &map_replace_by_key;
 	this->clone = &clone;
 	this->push_clone = &push_clone;
-    this->find_by_key = &find_by_key;
-    return (this);
+	this->find_by_key = &find_by_key;
+	return (this);
 }
 
-t_bool map_replace_by_key(t_array_list *this, t_string key, void *new_one, void (*del)(void *item))
+t_bool	map_replace_by_key(t_array_list *this, t_string key,
+			void *new_one, void (*del)(void *item))
 {
-    t_key_map * map = this->find_by_key(*this, key);
-    if (map == NULL)
-        return(FALSE);
-    del = NULL;
-    //del(map->value);
-    map->value = new_one;
-    return TRUE;
+	t_key_map	*map;
+
+		map = this->find_by_key(*this, key);
+	if (map == NULL)
+		return (FALSE);
+	del = NULL;
+	del(map->value);
+	map->value = new_one;
+	return (TRUE);
 }
 
-void *find_by_key(t_array_list  this, char *key) {
-    t_key_map *item;
-    int i;
-    i = 0;
-    if (this.is_map)
-    {
-        item =(t_key_map *) this.get(&this, i);
-        while (item != NULL)
-        {
-            if (!strcmp(key, (const char *)item->key) )
-                return (item->value);
-            i++;
-            item =(t_key_map *) this.get(&this, i);
-        }
+void	*find_by_key(t_array_list this, char *key)
+{
+	t_key_map	*item;
+	int			i;
 
-    }
-    return (NULL);
+	i = 0;
+	if (this.is_map)
+	{
+		item = (t_key_map *) this.get(&this, i);
+		while (item != NULL)
+		{
+			if (!strcmp(key, (const char *)item->key))
+				return (item->value);
+			i++;
+			item = (t_key_map *) this.get(&this, i);
+		}
+	}
+	return (NULL);
 }
-
