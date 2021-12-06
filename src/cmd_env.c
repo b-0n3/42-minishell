@@ -1,39 +1,35 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   exec_cmd_p1.c                                      :+:      :+:    :+:   */
+/*   cmd_env.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: am-khant <am-khant@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2021/12/06 03:41:15 by am-khant          #+#    #+#             */
-/*   Updated: 2021/12/06 10:03:20 by am-khant         ###   ########.fr       */
+/*   Created: 2021/12/06 10:04:13 by am-khant          #+#    #+#             */
+/*   Updated: 2021/12/06 10:05:13 by am-khant         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
-void	exec_echo(t_shell *this, t_node *node)
+void	cmd_env(t_shell *this, t_node *head)
 {
-	cmd_echo(this, node);
-}
+	size_t			i;
+	t_array_list	*m;
+	t_key_map		*sw;
 
-void	exec_cd(t_shell *this, t_node *node)
-{
-	cmd_cd(this, node);
-}
-
-void	exec_pwd(t_shell *this, t_node *node)
-{
-	cmd_pwd(this);
-	node = node;
-}
-
-void	exec_export(t_shell *this, t_node *node)
-{
-	cmd_export(this, node);
-}
-
-void	exec_unset(t_shell *this, t_node *node)
-{
-	cmd_unset(this, node);
+	m = (t_array_list *) &this->env;
+	i = 0;
+	while (i < m->index)
+	{
+		if (m->arr[i] != NULL)
+		{
+			sw = (t_key_map *) m->arr[i];
+			write(STDOUT_FILENO, sw->key, sizeof(sw->key));
+			write(STDOUT_FILENO, "=", 1);
+			write(STDOUT_FILENO, sw->value, sizeof(sw->value));
+			write(STDOUT_FILENO, "\n", 1);
+		}
+		i++;
+	}
 }

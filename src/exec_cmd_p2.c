@@ -6,7 +6,7 @@
 /*   By: am-khant <am-khant@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/06 03:43:12 by am-khant          #+#    #+#             */
-/*   Updated: 2021/12/06 03:54:03 by am-khant         ###   ########.fr       */
+/*   Updated: 2021/12/06 10:03:57 by am-khant         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,12 +14,12 @@
 
 void	exec_env(t_shell *this, t_node *node)
 {
-	printf("env command \n");
+	cmd_env(this, node);
 }
 
 void	exec_exit(t_shell *this, t_node *node)
 {
-	printf("exit command \n");
+	cmd_exit(this, node);
 }
 
 t_string	find_command_in_path(t_shell *this, t_node *cmd)

@@ -6,7 +6,7 @@
 /*   By: am-khant <am-khant@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/06 07:48:17 by am-khant          #+#    #+#             */
-/*   Updated: 2021/12/06 07:52:23 by am-khant         ###   ########.fr       */
+/*   Updated: 2021/12/06 10:05:29 by am-khant         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,11 @@
 char				*ft_itoa(int n);
 void				cmd_cd(t_shell *this, t_node *head);
 void				cmd_pwd(t_shell *this);
+int					check_nl(void *item);
+void				cmd_echo(t_shell *this, t_node *head);
+void				cmd_export(t_shell *this, t_node *head);
+void				cmd_unset(t_shell *shell, t_node *head);
+void				cmd_env(t_shell *this, t_node *head);
 void				exec_echo(t_shell *this, t_node *node);
 void				exec_cd(t_shell *this, t_node *node);
 void				exec_pwd(t_shell *this, t_node *node);

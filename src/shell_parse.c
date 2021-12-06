@@ -6,7 +6,7 @@
 /*   By: am-khant <am-khant@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/06 07:02:28 by am-khant          #+#    #+#             */
-/*   Updated: 2021/12/06 07:08:20 by am-khant         ###   ########.fr       */
+/*   Updated: 2021/12/06 08:18:11 by am-khant         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -107,7 +107,7 @@ t_bool	launch(t_shell *this, t_node *head)
 		head->pid = fork();
 		if (head->pid == 0)
 		{
-			find_function(this, head->value);
+			find_function(this, head->value)(this, head);
 			exit(1);
 		}
 		else
