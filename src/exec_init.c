@@ -31,6 +31,16 @@ void init_fds(t_node *node)
                 close(node->parent->p[0]);
                 dup2(node->parent->p[1], STDOUT_FILENO);
                 close(node->parent->p[1]);
+                tmp = node->parent;
+                while (tmp->parent != NULL)
+                {
+                    if (tmp->parent->op_type == pipeline)
+                    {
+                        close(tmp->parent->p[0]);
+                        close(tmp->parent->p[1]);
+                        tmp = tmp->parent;
+                    }
+                }
             }
             else if (node->parent->op_type == input)
             {
@@ -52,7 +62,7 @@ void init_fds(t_node *node)
                     else if (node->parent->parent->op_type == redirection || node->parent->parent->op_type == append)
                     {
                         tmp = node->parent->parent;
-                        while (tmp->parent != NULL && tmp->need_a_file(tmp))
+                        while (tmp->parent != NULL && tmp->parent->need_a_file(tmp->parent))
                             tmp = tmp->parent;
                         dup2(tmp->output_file->fd, STDOUT_FILENO);
                         close(tmp->output_file->fd);
@@ -73,7 +83,7 @@ void init_fds(t_node *node)
                     close(tmp->parent->p[0]);
                 }
                 dup2(tmp->output_file->fd, STDOUT_FILENO);
-                //  close(tmp->output_file->fd);
+                close(tmp->output_file->fd);
             }
 
         }
@@ -82,23 +92,33 @@ void init_fds(t_node *node)
             close(node->parent->p[1]);
             dup2(node->parent->p[0], STDIN_FILENO);
             close(node->parent->p[0]);
-            if (node->parent->parent != NULL)
+            if (node->parent->parent != NULL && node->parent->parent->op_type == pipeline)
             {
                 close(node->parent->parent->p[0]);
                 dup2(node->parent->parent->p[1], STDOUT_FILENO);
                 close(node->parent->parent->p[1]);
+                tmp = node->parent;
+                while (tmp->parent != NULL)
+                {
+                    if (tmp->parent->op_type == pipeline)
+                    {
+                        close(tmp->parent->p[0]);
+                        close(tmp->parent->p[1]);
+                        tmp = tmp->parent;
+                    }
+                }
             }
         }
     }
 }
 
-t_key_map  *new_func_map(t_string key, exec_v *func){
+t_key_map  *new_func_map(t_string key, t_exec_v *func){
     t_key_map  *this;
 
     this = malloc(sizeof(t_func_map));
     if (this == NULL)
             return NULL;
-    this->key = strdup(key);
+    this->key = key;
     this->value = func;
     return (this);
 }

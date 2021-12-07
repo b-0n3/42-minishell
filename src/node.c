@@ -53,6 +53,7 @@ t_node  *new_node()
     new->input_file = NULL;
     new->output_file = NULL;
     new->left = NULL;
+    new->eof = NULL;
     new->parent = NULL;
     new->right = NULL;
     new->need_a_file = &node_need_a_file;
@@ -80,14 +81,33 @@ t_bool node_need_a_file(t_node *this)
     return (this->op_type != pipeline && this->op_type != o_t_none);
 }
 
+void my_free(void *item)
+{
+    if (item != NULL)
+        free(item);
+}
+
 void  node_free(t_node *this)
 {
     if (this == NULL)
         return;
     node_free(this->left);
     node_free(this->right);
-    free(this->value);
+    my_free(this->value);
+    if (this->op_type == heredoc)
+        unlink(this->output_file->uri);
     this->args.free(&this->args, &token_free);
+    my_free(this->eof);
+    if (this->output_file != NULL)
+    {
+        my_free(this->output_file->uri);
+        my_free(this->output_file);
+    }
+    if (this->input_file != NULL)
+    {
+        my_free(this->input_file->uri);
+        my_free(this->input_file);
+    }
 
     free(this);
 }

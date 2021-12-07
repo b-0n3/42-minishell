@@ -1,25 +1,6 @@
 #include "minishell.h"
 extern int mood;
 
-//int	checkdir(char *dirname)
-//{
-//	DIR	*dir;
-//
-//	dir = opendir(dirname);
-//	if (dir)
-//	{
-//		closedir(dir);
-//		return (1);
-//	}
-//	else
-//	{
-//		write(STDOUT_FILENO, "cd: no such file or directory: ", 32);
-//		write(STDOUT_FILENO, dirname, sizeof(dirname));
-//		write(STDOUT_FILENO, " \n", 3);
-//		exit(1);
-//	}
-//}
-
 int	edit_env(t_shell *this, char *dest_path)
 {
     char tmp[1024];
@@ -32,8 +13,6 @@ int	edit_env(t_shell *this, char *dest_path)
 
 		return (1);
 	}
-    if (dest_path == NULL)
-        dest_path = strdup("");
 	this->env.replace_by_key(&this->env, "PWD", strdup(getcwd(tmp, 1024)), &free);
 	return (0);
 }
@@ -43,7 +22,7 @@ void	cmd_cd(t_shell *this, t_node *head)
 	t_string            dest_path;
 
     if (head->args.index > 0)
-	dest_path = (char *)((t_token*) head->args.get(&head->args, 0))->value;
+	    dest_path = (char *)((t_token*) head->args.get(&head->args, 0))->value;
     else
        dest_path = NULL;
     if (dest_path == NULL)

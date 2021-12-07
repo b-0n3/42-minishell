@@ -17,8 +17,6 @@ int mood;
 //     ^
 void quit_handler(int num)
 {
-    if (num == SIGQUIT)
-        return;
     if (mood == 0) {
         write(1, "\n", 1);
         rl_on_new_line();
@@ -32,7 +30,7 @@ int main(int argc, t_string *argv, t_string *env) {
     argc = 1;
     argv = NULL;
     mood = 0;
-    signal(SIGQUIT,&quit_handler);
+    signal(SIGQUIT,SIG_IGN);
     signal(SIGINT,&quit_handler);
 
 
@@ -40,8 +38,6 @@ int main(int argc, t_string *argv, t_string *env) {
     shell.env.is_map = TRUE;
 
     shell.loop(&shell);
-
-    system("leaks minishell");
-
+    
 }
 

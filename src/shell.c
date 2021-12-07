@@ -66,13 +66,14 @@ void init_shell(t_shell *this ,t_string line)
 		}
 		this->cursor = 0;
 		this->l_cursor = 0;
+        this->h_d_index = 0;
 		this->fresh = 0;
 		this->commmand = line;
         while(this->commmand[this->cursor] == ' ') {
             this->cursor++;
             this->l_cursor++;
         }
-            this->parsing_error = NULL;
+        this->parsing_error = NULL;
 		this->command_len = strlen(this->commmand);
 		//        if (!this->unclosed(this)) {
 		this->dqout = FALSE;
@@ -126,14 +127,14 @@ t_token *pre_get_next_token(t_shell *this)
 	t_token *token = NULL;
 	char *next;
 
-	if (this->unclosed(this)) {
-
-		next = join_command(this->commmand, readline(">"));
-		if (next == NULL)
-			return NULL;
-		this->init(this, next);
-		return  pre_get_next_token(this);
-	}
+//	if (this->unclosed(this)) {
+//
+//		next = join_command(this->commmand, readline(">"));
+//		if (next == NULL)
+//			return NULL;
+//		this->init(this, next);
+//		return  pre_get_next_token(this);
+//	}
 	token = this->get_next_token(this);
 	return token;
 }
@@ -190,7 +191,7 @@ t_array_iterator *split(t_string cmd, char ch)
 
 void *str_to_token(void *str)
 {
-    return new_token((t_string )str, word);
+    return new_token(strdup((t_string )str), word);
 }
 
 t_node *token_to_node(t_token *this)
@@ -208,7 +209,7 @@ t_node *token_to_node(t_token *this)
             iter = split(this->value, ' ');
             if (iter->list->index > 1) {
                 free(node->value);
-                node->value = (char *)iter->next(iter);
+                node->value = strdup((char *)iter->next(iter));
                 while(iter->has_next(iter))
                   node->args.push(&node->args, iter->do_on_next(iter, &str_to_token), sizeof(t_token));
             }
@@ -241,6 +242,8 @@ t_bool  inject_command(t_node *head , t_token *token)
 
 void add_file(t_shell  *this, t_node *head, t_token *token)
 {
+    char *heredoc;
+    char *tmp;
 
     if (this->parsing_error != NULL) {
         token->free(token);
@@ -250,6 +253,7 @@ void add_file(t_shell  *this, t_node *head, t_token *token)
             head->output_file = token->to_file(token);
             if (head->output_file->open(head->output_file, O_WRONLY | O_CREAT | O_TRUNC, 0644))
                 this->parsing_error = strdup(head->output_file->uri);
+            token->free(token);
         }
         else if (!inject_command(head, token))
             token->free(token);
@@ -261,6 +265,7 @@ void add_file(t_shell  *this, t_node *head, t_token *token)
         head->output_file = token->to_file(token);
          if (head->output_file->open(head->output_file, O_CREAT | O_APPEND | O_WRONLY, 0644))
             this->parsing_error = strdup(head->output_file->uri);
+            token->free(token);
         }
         else if (!inject_command(head, token))
             token->free(token);
@@ -270,6 +275,7 @@ void add_file(t_shell  *this, t_node *head, t_token *token)
             head->input_file = token->to_file(token);
             if (head->input_file->open(head->input_file, O_RDONLY, -1))
                 this->parsing_error = strdup(head->input_file->uri);
+            token->free(token);
         }
         else if (!inject_command(head, token))
                 token->free(token);
@@ -278,10 +284,16 @@ void add_file(t_shell  *this, t_node *head, t_token *token)
     else
 	{
         if (head->output_file == NULL) {
+            tmp = strdup("/tmp/B0N3_HEREDOC");
+            heredoc = ft_itoa(this->h_d_index++);
+            tmp = ft_strjoin(tmp, heredoc);
             head->eof = strdup(token->value);
-            head->output_file = new_file("/tmp/B0N3_HEREDOC");
+            head->output_file = new_file(tmp);
+            free(heredoc);
+            free(tmp);
             if (head->output_file->open(head->output_file,O_WRONLY | O_TRUNC | O_CREAT, 0644))
                 this->parsing_error = strdup(head->output_file->uri);
+            token->free(token);
         }
         else if (!inject_command(head, token))
             token->free(token);
@@ -338,7 +350,7 @@ t_node  *handle_operator(t_shell  *this, t_token  *token, t_node *head)
 		}
 	}else
 		head = operator;
-
+    token->free(token);
 	return head;
 }
 
@@ -401,7 +413,7 @@ t_bool check_syntax(t_shell  *this, t_node *pointer)
     t_node  *tmp;
 
     tmp = pointer;
-    if (pointer == NULL )
+    if (pointer == NULL)
          return TRUE;
     if (this != NULL && this->parsing_error != NULL)
         return FALSE;
@@ -462,18 +474,19 @@ t_bool shell_parse(t_shell *this) {
 	while (this->has_next_token(this))
 	{
 		token = pre_get_next_token(this);
-		if (token == NULL && this->has_next_token(this))
-		{
-			node_free(head);
-			head = NULL;
-			continue;
-		}
+        if (token == NULL)
+            break;
 		if (token->type == word)
 			head = handle_word(this, token, head);
 		else
 			head = handle_operator(this , token, head);
 	}
-	this->head = head;
+    this->head = head;
+    if (this->unclosed(this))
+    {
+        this->parsing_error = strdup("syntax error");
+        return (FALSE);
+    }
 	return  check_syntax(this, head) ;//&& check_file_syntax(this->head);
 }
 
@@ -492,9 +505,9 @@ void print_node(t_node *node)
 	print_node(node->right);
 
 }
-exec_v *find_function(t_shell  *this , t_string value)
+t_exec_v *find_function(t_shell  *this , t_string value)
 {
-    exec_v *func = (exec_v *)this->exec_pool.find_by_key(this->exec_pool, value);
+    t_exec_v *func = (t_exec_v *)this->exec_pool.find_by_key(this->exec_pool, value);
     if(func ==  NULL)
         func = &exec_other;
     return func;
@@ -516,14 +529,10 @@ void exec_heredoc(t_shell *this, t_node *head) {
     exit(0);
 }
 
-t_bool  launch(t_shell *this, t_node *head)
+t_bool exec_all_heredocs(t_shell *this, t_node *head)
 {
-    t_node *tmp;
     if (head == NULL)
-        return TRUE;
-    if (head->op_type == pipeline) {
-        pipe(head->p);
-    }
+        return (TRUE);
     if (head->op_type == heredoc)
     {
         head->pid = fork();
@@ -532,8 +541,20 @@ t_bool  launch(t_shell *this, t_node *head)
             exec_heredoc(this, head);
         }else {
             waitpid(head->pid, NULL, 0);
-           head->output_file->open(head->output_file,  O_RDONLY, -1);
+            head->output_file->open(head->output_file,  O_RDONLY, -1);
         }
+    }
+    return (exec_all_heredocs(this, head->left)
+    && exec_all_heredocs(this, head->right));
+}
+
+t_bool  launch(t_shell *this, t_node *head)
+{
+    t_node *tmp;
+    if (head == NULL)
+        return TRUE;
+    if (head->op_type == pipeline) {
+        pipe(head->p);
     }
     else if (head->word_type == command)
     {
@@ -549,7 +570,7 @@ t_bool  launch(t_shell *this, t_node *head)
                     if (!head->isleft) {
                         close(head->parent->p[1]);
                         close(head->parent->p[0]);
-                    }
+                   }
                 }
                 tmp = head->parent;
                 while (tmp->parent != NULL && tmp->parent->need_a_file(tmp->parent))
@@ -608,6 +629,7 @@ void  shell_execute(t_shell *this){
     mood = 1;
     if (this->head == NULL)
         return ;
+    exec_all_heredocs(this, this->head);
     if ((this->head->parent == NULL || this->head->parent->need_a_file(this->head->parent))
     && is_built_in(this->head->value) )
     {
@@ -618,6 +640,7 @@ void  shell_execute(t_shell *this){
         launch(this, this->head);
         wait_for_all(this, this->head);
         waitpid(this->last_one, &this->exit_code, 0);
+
     }
     close_fds(this, this->head);
     mood = 0;
@@ -666,29 +689,40 @@ void shell_loop(t_shell *this)
 
 	line = readline("IM->B0N3$>");
 	while (line != NULL) {
-		this->init(this, line);
-		if (this->parse(this))
-		{
-            this->execute(this);
-		}
+    
+            //line = readline("IM->B0N3$");
+		    this->init(this, line);
+		    if (this->parse(this))
+		    {
+             this->execute(this);
+		    }
 		else
 			perror(this->parsing_error);
 		// execute command
-        free(this->commmand);
-        add_history(line);
 
+        add_history(line);
+        free(this->commmand);
+      // system("leaks minishell");
 		line = readline("IM->B0N3$>");
 	}
     this->free(this);
     // @Todo: call exit
 }
+void free_key_map(void *item)
+{
+    t_key_map  *map;
+
+    map = (t_key_map *)map;
+    if (map != NULL)
+     my_free(map->key);
+    my_free(map);
+}
 
 void shell_free(t_shell *this)
 {
-
-   // this->env.free(&this->env, &)
     this->exec_pool.free(&this->exec_pool, &free);
-    free(this->commmand);
+   // free(this->commmand);
     node_free(this->head);
+  //  system("leaks  minishell");
 }
 

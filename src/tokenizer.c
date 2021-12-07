@@ -180,6 +180,12 @@ t_string ft_strjoin(t_string s1, t_string s2) {
 t_bool env_ext_has_next(t_env_ext *this) {
     return (this->cursor < this->length);
 }
+t_string cut_w(t_env_ext *this)
+{
+    if (this->cursor - this->l_cursor == 1 && (this->cmd[this->l_cursor] == '\"' ||this->cmd[this->l_cursor] == '\'' ))
+        return strdup(" ");
+    return strndup(this->cmd + this->l_cursor, this->cursor - this->l_cursor);
+}
 
 // asdf"sdaf$HOME'sdf'_$USER_$HOME"
 t_string env_ext_next(t_env_ext *this) {
@@ -189,16 +195,18 @@ t_string env_ext_next(t_env_ext *this) {
 
     i = 0;
     if (this->cursor == this->length && this->l_cursor < this->cursor)
-        return strndup(this->cmd + this->l_cursor, this->cursor - this->l_cursor);
+        return cut_w(this);
+
     if (this->l_cursor > this->cursor || this->cursor >= this->length)
         return NULL;
+    // ''
+    //  ^
     if (this->cmd[this->cursor] == '\"' && !this->q) {
         this->dq = !this->dq;
         if (this->l_cursor < this->cursor) {
-
             value = strndup(this->cmd + this->l_cursor, this->cursor - this->l_cursor);
-            this->l_cursor = this->cursor;
             this->cursor++;
+            this->l_cursor = this->cursor;
             return value;
         }
         this->cursor++;
@@ -209,11 +217,11 @@ t_string env_ext_next(t_env_ext *this) {
         this->expand = !this->expand;
         if (this->l_cursor < this->cursor) {
             value = strndup(this->cmd + this->l_cursor, this->cursor - this->l_cursor);
-            this->l_cursor = this->cursor;
             this->cursor++;
+            this->l_cursor = this->cursor;
             return value;
         }
-        this->cursor++;
+            this->cursor++;
         this->l_cursor = this->cursor;
     }
     if (this->cmd[this->cursor] == '$' && (this->cmd[this->cursor +1] == '?' || this->cmd[this->cursor + 1] == '$'))

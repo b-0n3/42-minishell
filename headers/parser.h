@@ -5,12 +5,12 @@
 
 typedef  struct s_shell t_shell;
 
-typedef void exec_v(t_shell *this, t_node *node);
+typedef void t_exec_v(t_shell *this, t_node *node);
 
 typedef struct s_func_map
 {
     t_string  key;
-    exec_v *func;
+    t_exec_v *func;
 }           t_func_map;
 
 
@@ -23,6 +23,7 @@ struct s_shell
     t_string  parsing_error;
     t_array_list *built_ins;
     size_t command_len;
+    int     h_d_index;
     pid_t       last_one;
     t_node      *head;
     int         exit_code;
@@ -51,7 +52,7 @@ t_bool shell_parse( t_shell *this);
 void shell_free(t_shell *this);
 t_bool has_next_token(t_shell *this);
 t_bool shell_quot_unclosed(t_shell *this);
-t_key_map  *new_func_map(t_string key, exec_v *func);
+t_key_map  *new_func_map(t_string key, t_exec_v *func);
 void shell_execute(t_shell *this);
 void exec_echo(t_shell *this, t_node *node);
 void exec_cd(t_shell *this, t_node *node);
@@ -65,6 +66,7 @@ void exec_other(t_shell *this, t_node *node);
  t_string *node_to_execv_args(t_node *node);
  t_array_iterator *split(t_string cmd, char ch);
  t_key_map *env_to_key_map(t_string str);
+ void my_free(void *item);
 
  // cat f1 |  grep line >>  f1
 

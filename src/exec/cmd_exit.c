@@ -36,12 +36,19 @@ void	cmd_exit(t_shell *this, t_node *head)
         exitcode = strdup(token->value);
     else
         exitcode = NULL;
-
+    if (head->args.index > 1)
+    {
+        write(STDERR_FILENO, "exit: ", 7);
+        write(STDERR_FILENO, ": to many arguments\n", 20);
+        my_free(exitcode);
+        this->exit_code = 1;
+        return;
+    }
 	if (exitcode != NULL && !arg_is_digit(exitcode))
 	{
-		write(STDOUT_FILENO, "exit: ", 7);
-		write(STDOUT_FILENO, &exitcode, sizeof(exitcode));
-		write(STDOUT_FILENO, " : numeric argument required\n", 30);
+		write(STDERR_FILENO, "exit: ", 7);
+		write(STDERR_FILENO, exitcode, sizeof(exitcode));
+		write(STDERR_FILENO, " : numeric argument required\n", 30);
         if (mood == 2) {
              free(exitcode);
             this->free(this);

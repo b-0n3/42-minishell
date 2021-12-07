@@ -93,19 +93,54 @@ void print_export(void *item)
 
 }
 
+t_bool  check_ident(t_key_map *map)
+{
+    int i;
+
+    i = 0;
+    if (map == NULL || map->key == NULL)
+        return FALSE;
+    while(map->key[i] == ' ')
+        i++;
+
+    return (isdigit(map->key[i]) || (map->key[i] != '_' && !isalpha(map->key[i])));
+
+}
+t_bool  end_with_(t_string str, char c)
+{
+    int i;
+    i = 0;
+    while (str[i] != '\0')
+        i++;
+    return str[i] = c;
+}
 void	cmd_export(t_shell *this, t_node *node)
 {
     t_key_map  *map;
+    t_string    old_val;
 
+    old_val = NULL;
     if (node->args.index == 0)
         this->env.foreach(&this->env, &print_export);
     else
     {
         map = env_to_key_map(((t_token*)node->args.get(&node->args,0))->value);
+        if (check_ident(map))
+        {
+            this->exit_code = 1;
+            printf("minishell: export: not a valid identifier\n");
+            my_free(map->key);
+            my_free(map);
+            my_free(map->value);
+            if (mood == 1)
+                exit(1);
+            return;
+        }
         this->env.replace_by_key(&this->env, map->key, map->value, &free);
         free(map->key);
         free(map);
     }
     if (mood == 1)
         exit(0);
+    this->exit_code = 0;
 }

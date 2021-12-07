@@ -61,7 +61,6 @@ void exec_export(t_shell *this, t_node *node)
     dup2(in , STDIN_FILENO);
     close(in);
     close(out);
-    this->exit_code = 0;
 }
 
 void exec_unset(t_shell *this, t_node *node)
@@ -167,6 +166,7 @@ t_string *node_to_execv_args(t_node *node)
         ret[i] = strdup(((t_token *)iter->next(iter))->value);
         i++;
     }
+    iter->free(iter, NULL);
     ret[i] = NULL;
     return (ret);
 }

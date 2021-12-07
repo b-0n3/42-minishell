@@ -52,7 +52,7 @@ void *iterator_do_on_next(t_array_iterator *this, void *(*f)(void *))
         if (ptr == NULL)
             return NULL;
         ptr = f(ptr);
-        this->list->update_at(this->list, ptr, this->next_index - 1);
+       // this->list->update_at(this->list, ptr, this->next_index - 1);
     }
     return ptr;
 }
@@ -96,8 +96,10 @@ void iterator_free(t_array_iterator *this, void (*f)(void *))
 {
     if (this != NULL)
     {
-        if (f != NULL)
+        if (f != NULL) {
             this->list->free(this->list, f);
+            free(this->list);
+        }
         free(this);
     }
 }
