@@ -16,10 +16,10 @@
 # include <stdio.h>
 # include <stdlib.h>
 
-typedef int	t_bool;
-
 # define TRUE 1
 # define FALSE 0
+
+typedef int						t_bool;
 typedef char					*t_string;
 typedef struct s_array_list		t_array_list;
 
@@ -59,7 +59,7 @@ struct s_array_list {
 	t_array_iterator	*(*iterator)(struct s_array_list *this);
 
 	t_bool				(*push)(struct s_array_list * this, void *value,
-		size_t size_of_item);
+				size_t size_of_item);
 	t_bool				(*push_clone)(struct s_array_list * this,
 			struct s_array_list original,
 			t_bool is_not_primitive, void *(*__clone)(void *item));
@@ -78,8 +78,8 @@ struct s_array_list {
 			int l, int r);
 	void				(*free)(struct s_array_list *this,
 			void (*fe)(void *item));
-	t_bool				(*update_at)(struct s_array_list *this,
-			void *value, size_t index);
+	t_bool				(*update_at)(struct s_array_list * this,
+		void *value, size_t index);
 	void				(*swap_i)(struct s_array_list *this,
 			size_t i1, size_t i2);
 	void				(*swap)(void **a, void **b);
@@ -92,7 +92,7 @@ struct s_array_list {
 			t_bool is_not_primitive, void *(*__clone)(void *item));
 	void				*(*find_by_key)(struct s_array_list this, t_string key);
 	t_bool				(*replace_by_key)(struct s_array_list * this, t_string key,
-		void *new_one, void (*del)(void *));
+			void *new_one, void ( *del)(void *));
 }	;
 
 t_bool				map_replace_by_key(struct s_array_list *this, t_string key,

@@ -6,7 +6,7 @@
 /*   By: am-khant <am-khant@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/07 02:13:46 by am-khant          #+#    #+#             */
-/*   Updated: 2021/12/07 02:27:34 by am-khant         ###   ########.fr       */
+/*   Updated: 2021/12/07 05:05:42 by am-khant         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,8 +87,7 @@ typedef struct s_file
 	t_string	uri;
 	int			fd;
 	int			exception;
-	t_bool		(*open)(struct s_file *this, int mode,
-			int perms);
+	t_bool		(*open)(struct s_file *this, int mode, int perms);
 	void		(*free)(struct s_file *this);
 }	t_file;
 

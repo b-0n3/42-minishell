@@ -1,22 +1,22 @@
 /* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   array_list_delete_if.c                             :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: aait-ham <marvin@42.fr>                    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2021/02/09 19:36:27 by aait-ham          #+#    #+#             */
-/*   Updated: 2021/07/11 19:08:55 by aait-ham         ###   ########.fr       */
-/*                                                                            */
+/*																			*/
+/*														:::	  ::::::::   */
+/*   array_list_delete_if.c							 :+:	  :+:	:+:   */
+/*													+:+ +:+		 +:+	 */
+/*   By: aait-ham <marvin@42.fr>					+#+  +:+	   +#+		*/
+/*												+#+#+#+#+#+   +#+		   */
+/*   Created: 2021/02/09 19:36:27 by aait-ham		  #+#	#+#			 */
+/*   Updated: 2021/07/11 19:08:55 by aait-ham		 ###   ########.fr	   */
+/*																			*/
 /* ************************************************************************** */
 
 #include "array_list.h"
 
 void	delete_if_free(t_array_list *this,
-        t_bool (*cond)(void *item, void *som),
-	 		void (*fe)(void *item),
-             size_t ixx,
-             void *som)
+		t_bool (*cond)(void *item, void *som),
+			void (*fe)(void *item),
+			size_t ixx,
+			void *som)
 {
 	size_t	i;
 
