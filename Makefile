@@ -12,8 +12,8 @@ SRC = $(shell find ./src -type  f -name *.c)
 all: $(NAME)
 
 $(NAME): $(ARRAY_LIST)
-	@gcc $(SRC) $(ARRAY_LIST) -g -I ./headers -o $(NAME) -lreadline -I/goinfre/aait-ham/.brew/opt/readline/include \
--L/goinfre/aait-ham/.brew/opt/readline/lib  #-fsanitize=address
+	@gcc $(SRC) $(ARRAY_LIST) -g -I ./headers -o $(NAME) -lreadline -I/goinfre/am-khant/.brew/opt/readline/include \
+-L/goinfre/am-khant/.brew/opt/readline/lib  #-fsanitize=address
 
 $(ARRAY_LIST):
 	@make -C  $(ARRAY_LIST_PATH)

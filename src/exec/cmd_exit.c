@@ -1,6 +1,18 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   cmd_exit.c                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: am-khant <am-khant@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2021/12/07 01:58:07 by am-khant          #+#    #+#             */
+/*   Updated: 2021/12/07 02:04:23 by am-khant         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "minishell.h"
 
-extern int mood;
+extern int	g_mood;
 
 int	ft_isdigit(int c)
 {
@@ -25,44 +37,51 @@ int	arg_is_digit(char *arg)
 	return (1);
 }
 
-
-void	cmd_exit(t_shell *this, t_node *head)
+void	cmd_exit_helpers(t_shell *this, char *exitcode, int e_c)
 {
-	char				*exitcode;
-    t_token            *token;
-    int                 e_c;
-    token = head->args.get(&head->args, 0);
-    if (token != NULL && token->value != NULL)
-        exitcode = strdup(token->value);
-    else
-        exitcode = NULL;
-    if (head->args.index > 1)
-    {
-        write(STDERR_FILENO, "exit: ", 7);
-        write(STDERR_FILENO, ": to many arguments\n", 20);
-        my_free(exitcode);
-        this->exit_code = 1;
-        return;
-    }
 	if (exitcode != NULL && !arg_is_digit(exitcode))
 	{
 		write(STDERR_FILENO, "exit: ", 7);
 		write(STDERR_FILENO, exitcode, sizeof(exitcode));
 		write(STDERR_FILENO, " : numeric argument required\n", 30);
-        if (mood == 2) {
-             free(exitcode);
-            this->free(this);
-        }
-            exit(255);
+		if (g_mood == 2)
+		{
+			free(exitcode);
+			this->free(this);
+		}
+		exit(255);
 	}
-    if (mood == 2)
-        write(STDOUT_FILENO, "exit\n",5);
-    if (mood == 2)
-        this->free(this);
-    if (exitcode!= NULL) {
-        e_c = atoi(exitcode);
-        free(exitcode);
-        exit(e_c);
-    }
-    exit(0);
+	if (g_mood == 2)
+		write(STDOUT_FILENO, "exit\n", 5);
+	if (g_mood == 2)
+		this->free(this);
+	if (exitcode != NULL)
+	{
+		e_c = ft_atoi(exitcode);
+		free(exitcode);
+		exit(e_c);
+	}
+}
+
+void	cmd_exit(t_shell *this, t_node *head)
+{
+	char				*exitcode;
+	t_token				*token;
+	int					e_c;
+
+	token = head->args.get(&head->args, 0);
+	if (token != NULL && token->value != NULL)
+		exitcode = ft_strdup(token->value);
+	else
+		exitcode = NULL;
+	if (head->args.index > 1)
+	{
+		write(STDERR_FILENO, "exit: ", 7);
+		write(STDERR_FILENO, ": to many arguments\n", 20);
+		my_free(exitcode);
+		this->exit_code = 1;
+		return ;
+	}
+	cmd_exit_helpers(this, exitcode, e_c);
+	exit(0);
 }
