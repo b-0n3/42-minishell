@@ -1,43 +1,40 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   entry_point.c                                      :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: aait-ham <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2021/12/07 01:53:18 by aait-ham          #+#    #+#             */
+/*   Updated: 2021/12/07 01:53:21 by aait-ham         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "minishell.h"
 
-//void start_shell(t_shell *this)
-//{
-//    t_string line;
-//
-////    line = readline(" $>");
-////    while (line != NULL && !strcmp(line,"exit"))
-////    {
-////        this->loop(this, line);
-////
-////        line = readline(" $>");
-////    }
-//}
-int mood;
-// catt hello | cd ..  | pwd > file
-//     ^
-void quit_handler(int num)
+int	g_mood;
+
+void	quit_handler(int num)
 {
-    if (mood == 0) {
-        write(1, "\n", 1);
-        rl_on_new_line();
-        rl_replace_line("", 0);
-        rl_redisplay();
-    }
+	if (g_mood == 0)
+	{
+		write(1, "\n", 1);
+		rl_on_new_line();
+		rl_replace_line("", 0);
+		rl_redisplay();
+	}
 }
 
-int main(int argc, t_string *argv, t_string *env) {
-    t_shell shell;
-    argc = 1;
-    argv = NULL;
-    mood = 0;
-    signal(SIGQUIT,SIG_IGN);
-    signal(SIGINT,&quit_handler);
+int	main(int argc, t_string *argv, t_string *env)
+{
+	t_shell	shell;
 
-
-    create_shell(&shell, env);
-    shell.env.is_map = TRUE;
-
-    shell.loop(&shell);
-    
+	argc = 1;
+	argv = NULL;
+	g_mood = 0;
+	signal(SIGQUIT, SIG_IGN);
+	signal(SIGINT, &quit_handler);
+	create_shell(&shell, env);
+	shell.env.is_map = TRUE;
+	shell.loop(&shell);
 }
-
