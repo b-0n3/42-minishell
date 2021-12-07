@@ -12,61 +12,45 @@
 
 #include "minishell.h"
 
-static	int	taille(unsigned int nb)
+int	ft_intlen(unsigned int nb)
 {
-	unsigned int	size;
+	int	i;
 
-	size = 0;
-	while (nb >= 10)
+	i = 0;
+	while (nb > 0)
 	{
-		nb /= 10;
-		++size;
+		nb = nb / 10;
+		i++;
 	}
-	return ((int)(size + 1));
+	return (i);
 }
 
-char	*taballoc(int n, int size, int i)
+char	*ft_itoa(int c)
 {
-	char	*tab;
-	int		nb;
-
-	if (n < 0)
-		nb = (size + 2);
-	else
-		nb = (size + 1);
-	tab = malloc(nb);
-	if (tab == 0)
-		return (NULL);
-	tab[i] = '-';
-	return (tab);
-}
-
-char	*ft_itoa(int n)
-{
-	char			*tab;
 	unsigned int	nb;
 	unsigned int	i;
-	unsigned int	size;
+	char			*str;
 
-	if (n < 0)
-		nb = n * -1;
-	else
-		nb = n;
-	size = taille(nb);
+	nb = c;
 	i = 0;
-	if (taballoc(n, size, i))
-		return (0);
-	if (n < 0)
-		size++;
-	i = size - 1;
-	while (nb >= 10)
+	if (c <= 0)
 	{
-		tab[i--] = (nb % 10 + 48);
-		nb /= 10;
+		nb = -c;
+		i = 1;
 	}
-	tab[i] = (nb % 10 + 48);
-	tab[size] = '\0';
-	return (tab);
+	i += ft_intlen(nb);
+	str = (char *)malloc((i + 1) * sizeof(char));
+	if (!str)
+		return (0);
+	str[i] = '\0';
+	while (i-- > 0)
+	{
+		str[i] = (nb % 10) + '0';
+		nb = nb / 10;
+	}
+	if (c < 0)
+		str[0] = '-';
+	return (str);
 }
 
 void	my_free(void *item)

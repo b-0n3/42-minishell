@@ -27,15 +27,15 @@ void	parse_word_pipeline(t_node *head, t_node *com)
 		com->parent = head;
 }
 
-t_node	*parse_args(t_node *head, t_token *token, t_node *com)
+t_node	*parse_args(t_shell *this, t_node *head, t_token *token, t_node *com)
 {
 	while (1)
 	{
-		token = pre_get_next_token(this);
+		token = this->get_next_token(this);
 		if (token != NULL)
 			token->expand(token, this->exit_code, this->env);
 		if (token == NULL || token->type != word)
-			return (handle_operator(this, token, head));
+			return (handle_operator(this, token, &head));
 		com->args.push(&com->args, token, sizeof(t_token));
 	}
 	return (head);
@@ -59,7 +59,7 @@ t_node	*handle_word(t_shell *this, t_token *token, t_node *head)
 			parse_word_pipeline(head, com);
 		else
 			head = com;
-		return (parse_args(head, token, com));
+		return (parse_args(this, head, token, com));
 	}
 	return (head);
 }

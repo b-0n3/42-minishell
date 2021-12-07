@@ -61,4 +61,5 @@ void	shell_free(t_shell *this)
 {
 	this->exec_pool.free(&this->exec_pool, &free);
 	node_free(this->head);
+	system("leaks minishell");
 }

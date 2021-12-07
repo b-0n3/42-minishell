@@ -30,12 +30,12 @@ void	*str_to_token(void *str)
 	return (new_token(ft_strdup((t_string)str), word));
 }
 
-t_bool	nodecreate(t_node *node, t_token *this)
+t_bool	nodecreate(t_node **node, t_token *this)
 {
-	node = new_node();
+	*node = new_node();
 	if (node == NULL)
 		return (FALSE);
-	node->value = ft_strdup(this->value);
+    (*node)->value = ft_strdup(this->value);
 	return (TRUE);
 }
 
@@ -44,7 +44,7 @@ t_node	*token_to_node(t_token *this)
 	t_node				*node;
 	t_array_iterator	*iter;
 
-	if (!nodecreate(node, this))
+	if (!nodecreate(&node, this))
 		return (NULL);
 	if (this->type == word)
 	{

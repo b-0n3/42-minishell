@@ -22,7 +22,8 @@ SRC = 	./srcs/array_list.c \
 		./srcs/array_list_operation.c \
 		./srcs/array_list_pull.c \
 		./srcs/array_list_sort.c \
-		./srcs/iterator.c
+		./srcs/iterator.c \
+		./srcs/iterator_suite.c
 
 INC = ./includes/
 

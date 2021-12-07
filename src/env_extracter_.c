@@ -28,11 +28,12 @@ t_string	env_ext_next(t_env_ext *this)
 	if (this->cmd[this->cursor] == '$'
 		&& (this->cmd[this->cursor +1] == '?'
 			|| this->cmd[this->cursor + 1] == '$'))
-		extract_exit_code(this);
-	if (this->cmd[this->cursor] == '$'
-		&& this->expand && !ft_is_digit(this->cmd[this->cursor + 1]))
+		return (extract_exit_code(this));
+	if ((this->cmd[this->cursor] == '$'
+			&& this->expand && !ft_isdigit(this->cmd[this->cursor + 1]))
+		&& !this->q)
 		return (extract_env(this));
-	else if (this->cmd[this->cursor] == '$')
+	else if (this->cmd[this->cursor] == '$' && !this->q)
 		return (extract_env_(this));
 	this->cursor++;
 	return (this->next(this));

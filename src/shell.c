@@ -44,13 +44,13 @@ t_bool	shell_parse(t_shell *this)
 	head = NULL;
 	while (this->has_next_token(this))
 	{
-		token = pre_get_next_token(this);
+		token = this->get_next_token(this);
 		if (token == NULL)
 			break ;
 		if (token->type == word)
 			head = handle_word(this, token, head);
 		else
-			head = handle_operator(this, token, head);
+			head = handle_operator(this, token, &head);
 	}
 	this->head = head;
 	if (this->unclosed(this))

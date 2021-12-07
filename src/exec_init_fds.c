@@ -26,8 +26,8 @@ void	link_left_pipe(t_node *node)
 		{
 			close(tmp->parent->p[0]);
 			close(tmp->parent->p[1]);
-			tmp = tmp->parent;
 		}
+		tmp = tmp->parent;
 	}
 }
 
@@ -77,8 +77,8 @@ void	close_for_right(t_node *node)
 			{
 				close(tmp->parent->p[0]);
 				close(tmp->parent->p[1]);
-				tmp = tmp->parent;
 			}
+			tmp = tmp->parent;
 		}
 	}
 }

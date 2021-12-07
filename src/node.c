@@ -74,7 +74,7 @@ void	node_free(t_node *this)
 	my_free(this->value);
 	if (this->op_type == heredoc)
 		unlink(this->output_file->uri);
-	this->args.free(&this->args, &token_free);
+	this->args.free(&this->args, (void(*)(void*))&token_free);
 	my_free(this->eof);
 	if (this->output_file != NULL)
 	{

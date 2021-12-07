@@ -12,11 +12,11 @@
 
 #include "libft.h"
 
-char	*strndup(const char *s1, size_t n)
+char	*ft_strndup(const char *s1, size_t n)
 {
 	int			i;
 	size_t		len;
-	t_string	cmd;
+	char		*cmd;
 
 	i = 0;
 	if (s1 == NULL)
@@ -24,7 +24,7 @@ char	*strndup(const char *s1, size_t n)
 	len = ft_strlen(s1);
 	if (len < n)
 		return (ft_strdup(s1));
-	cmd = malloc(n + 1);
-	ft_strlcpy(cmd, s1, n);
+	cmd = calloc(n + 1, 1);
+	ft_memmove(cmd, s1, n);
 	return (cmd);
 }

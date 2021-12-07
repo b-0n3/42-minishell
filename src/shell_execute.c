@@ -11,12 +11,13 @@
 /* ************************************************************************** */
 
 #include "minishell.h"
-extern int g_mood;
 
-t_bool close_fds(t_shell *this, t_node *head)
+extern int	g_mood;
+
+t_bool	close_fds(t_shell *this, t_node *head)
 {
 	if (head == NULL)
-		return TRUE;
+		return (TRUE);
 	if (head->op_type == pipeline)
 	{
 		close(head->p[0]);
@@ -38,7 +39,8 @@ t_bool	wait_for_all(t_shell *this, t_node *head)
 
 	if (head == NULL)
 		return (TRUE);
-	if (head->word_type == command && this->last_one != head->pid) {
+	if (head->word_type == command && this->last_one != head->pid)
+	{
 		waitpid(head->pid, &exi, 0);
 	}
 	return wait_for_all(this,head->left) && wait_for_all(this, head->right);
@@ -68,7 +70,7 @@ void  shell_execute(t_shell *this)
 		return ;
 	exec_all_heredocs(this, this->head);
 	if ((this->head->parent == NULL || this->head->parent->need_a_file(this->head->parent))
-			&& is_built_in(this->head->value) )
+			&& is_built_in(this->head->value))
 	{
 		g_mood = 2;
 		fun = find_function(this, this->head->value);

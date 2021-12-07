@@ -45,13 +45,3 @@ void	push_env(t_array_list *list, t_string *env)
 		env++;
 	}
 }
-
-t_bool	file_open(t_file *this, int mode, int perms)
-{
-	if (perms > 0)
-		this->fd = open(this->uri, mode, perms);
-	else
-		this->fd = open(this->uri, mode);
-	this->exception = this->fd < 0;
-	return (this->exception);
-}

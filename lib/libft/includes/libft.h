@@ -16,8 +16,6 @@
 # include <unistd.h>
 # include <stdlib.h>
 
-# include "array_list.h"
-
 typedef unsigned char	t_byte;
 
 typedef struct s_list
@@ -41,4 +39,7 @@ void					*ft_memmove(void *dst, const void *src, size_t len);
 void					*ft_memchr(const void *s, int c, size_t n);
 int						ft_memcmp(const void *s1, const void *s2, size_t n);
 char					*ft_strdup(const char *s);
+char					*ft_strndup(const char *s1, size_t n);
+int						ft_strcmp(char *s1, char *s2);
+char					*ft_strcpy(char *dest, char *src);
 #endif

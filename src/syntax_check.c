@@ -44,7 +44,7 @@ t_bool	check_pipeline(t_shell *this, t_node *pointer)
 			pointer = pointer->left;
 		if (pointer == NULL)
 		{
-			this->parsing_error = strdup("unexpected token |");
+			this->parsing_error = ft_strdup("unexpected token |");
 			return (FALSE);
 		}
 	}
@@ -56,7 +56,7 @@ t_bool	check_pipeline(t_shell *this, t_node *pointer)
 			pointer = pointer->right;
 		if (pointer == NULL)
 		{
-				this->parsing_error = strdup("unexpected token |");
+				this->parsing_error = ft_strdup("unexpected token |");
 			return (FALSE);
 		}
 	}
