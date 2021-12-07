@@ -12,12 +12,12 @@
 ////        line = readline(" $>");
 ////    }
 //}
-int mood;
+int g_mood;
 // catt hello | cd ..  | pwd > file
 //     ^
 void quit_handler(int num)
 {
-    if (mood == 0) {
+    if (g_mood == 0) {
         write(1, "\n", 1);
         rl_on_new_line();
         rl_replace_line("", 0);
@@ -29,7 +29,7 @@ int main(int argc, t_string *argv, t_string *env) {
     t_shell shell;
     argc = 1;
     argv = NULL;
-    mood = 0;
+    g_mood = 0;
     signal(SIGQUIT,SIG_IGN);
     signal(SIGINT,&quit_handler);
 

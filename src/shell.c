@@ -3,7 +3,7 @@
 //
 
 #include "minishell.h"
-extern int mood;
+extern int g_mood;
 t_string split_env(t_string env)
 {
 	int i;
@@ -626,16 +626,16 @@ t_bool is_built_in(t_string n)
 }
 
 void  shell_execute(t_shell *this){
-    mood = 1;
+    g_mood = 1;
     if (this->head == NULL)
         return ;
     exec_all_heredocs(this, this->head);
     if ((this->head->parent == NULL || this->head->parent->need_a_file(this->head->parent))
     && is_built_in(this->head->value) )
     {
-        mood = 2;
+        g_mood = 2;
         find_function(this, this->head->value)(this, this->head);
-        mood = 1;
+        g_mood = 1;
     }else {
         launch(this, this->head);
         wait_for_all(this, this->head);
@@ -643,7 +643,7 @@ void  shell_execute(t_shell *this){
 
     }
     close_fds(this, this->head);
-    mood = 0;
+    g_mood = 0;
 }
 
 void *map_to_string(void *item)
