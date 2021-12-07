@@ -22,7 +22,16 @@
 # include <unistd.h>
 # include <dirent.h>
 
-char	*ft_itoa(int n);
+
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <dirent.h>
+#include <errno.h>
+#include <unistd.h>
+char			*ft_itoa(int n);
+
+
 void	cmd_cd(t_shell *this, t_node *head);
 void	cmd_pwd(t_shell *this);
 void	init_fds(t_node *node);

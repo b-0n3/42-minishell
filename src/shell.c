@@ -4,38 +4,7 @@
 
 #include "minishell.h"
 extern int g_mood;
-t_string split_env(t_string env)
-{
-	int i;
-	i = 0;
-	while (env[i] != '\0' && env[i] != '=')
-		i++;
-	return strndup(env, i);
-}
 
-t_key_map *env_to_key_map(t_string str)
-{
-	t_key_map *map;
-
-	map = malloc(sizeof(t_key_map));
-	if (map == NULL)
-		return (NULL);
-	map->key = split_env(str);
-    if (str[strlen(map->key)] != '\0' && str[strlen(map->key)+ 1] !='\0')
-	    map->value = strdup( str + strlen(map->key) + 1);
-    else
-        map->value = NULL;
-	return map;
-}
-
-void push_env(t_array_list *list,t_string  *env)
-{
-	while (*env != NULL)
-	{
-		list->push(list, env_to_key_map(*env), sizeof(t_key_map));
-		env++;
-	}
-}
 
 void create_shell(t_shell *this, t_string *env)
 {
@@ -83,6 +52,7 @@ void init_shell(t_shell *this ,t_string line)
 	}
 
 }
+
 t_bool has_next_token(t_shell *this)
 {
 	return this->cursor <this->command_len;
@@ -121,73 +91,18 @@ void print_token(void *item)
 		printf("\t{\n\t\"type\":\"%s\",\n \t\"value\":\"%s\"\n}\n", m->type == op? "OP": "WORD", m->value);
 	}
 }
-// todo : print unclosed quotes and return to readline
+
 t_token *pre_get_next_token(t_shell *this)
 {
-	t_token *token = NULL;
-	char *next;
+	t_token *token;
 
-//	if (this->unclosed(this)) {
-//
-//		next = join_command(this->commmand, readline(">"));
-//		if (next == NULL)
-//			return NULL;
-//		this->init(this, next);
-//		return  pre_get_next_token(this);
-//	}
 	token = this->get_next_token(this);
 	return token;
 }
 
-t_bool file_open(t_file *this, int mode, int perms)
-{
-    if (perms > 0)
-        this->fd = open(this->uri ,mode, perms);
-    else
-        this->fd = open(this->uri ,mode);
-    this->exception =  this->fd < 0;
-    return this->exception;
-}
 
-void split_it(t_array_list *this, t_string cmd, char ch)
-{
-    int dq;
-    int q;
-    int cursor;
-    int l_cursor;
 
-    cursor = 0;
-    l_cursor = 0;
-    q = 0;
-    dq = 0;
-    while(cmd[cursor] != '\0')
-    {
-        if (cmd[cursor] == ch)
-        {
-            this->push(this, strndup(cmd + l_cursor, cursor - l_cursor ), sizeof(char *));
-            while (cmd[cursor] == ch)
-                cursor++;
-            l_cursor = cursor;
-        }
-        cursor++;
-    }
-    if (l_cursor < cursor)
-        this->push(this, strndup(cmd + l_cursor, cursor - l_cursor ), sizeof(char *));
-}
 
-t_array_iterator *split(t_string cmd, char ch)
-{
-    t_array_list  *list;
-
-    if (cmd == NULL)
-        return (NULL);
-    list = malloc(sizeof(t_array_list));
-    new_array_list(list, 2, sizeof(char *));
-    if (list == NULL)
-      return (NULL);
-    split_it(list, cmd , ch);
-    return list->iterator(list);
-}
 
 void *str_to_token(void *str)
 {
@@ -221,86 +136,6 @@ t_node *token_to_node(t_token *this)
 	return node;
 }
 
-t_bool  inject_command(t_node *head , t_token *token)
-{
-    t_node  *tmp;
-    tmp = head;
-    while (tmp->left != NULL && tmp->left->need_a_file(tmp->left))
-        tmp = tmp->left;
-    if (tmp->left != NULL && tmp->left->word_type == command) {
-        tmp->left->args.push(&tmp->left->args, token, sizeof(t_token));
-        return (TRUE);
-    }else
-    {
-        tmp->left = token->to_node(token);
-        tmp->left->parent = tmp;
-        tmp->left->isleft = TRUE;
-    }
-    return (FALSE);
-}
-
-
-void add_file(t_shell  *this, t_node *head, t_token *token)
-{
-    char *heredoc;
-    char *tmp;
-
-    if (this->parsing_error != NULL) {
-        token->free(token);
-        return;
-    }if (head->op_type == redirection) {
-        if (head->output_file == NULL) {
-            head->output_file = token->to_file(token);
-            if (head->output_file->open(head->output_file, O_WRONLY | O_CREAT | O_TRUNC, 0644))
-                this->parsing_error = strdup(head->output_file->uri);
-            token->free(token);
-        }
-        else if (!inject_command(head, token))
-            token->free(token);
-
-    }
-    else if (head->op_type == append)
-    {
-        if (head->output_file == NULL) {
-        head->output_file = token->to_file(token);
-         if (head->output_file->open(head->output_file, O_CREAT | O_APPEND | O_WRONLY, 0644))
-            this->parsing_error = strdup(head->output_file->uri);
-            token->free(token);
-        }
-        else if (!inject_command(head, token))
-            token->free(token);
-    }
-    else if (head->op_type == input) {
-        if (head->input_file == NULL) {
-            head->input_file = token->to_file(token);
-            if (head->input_file->open(head->input_file, O_RDONLY, -1))
-                this->parsing_error = strdup(head->input_file->uri);
-            token->free(token);
-        }
-        else if (!inject_command(head, token))
-                token->free(token);
-
-    }
-    else
-	{
-        if (head->output_file == NULL) {
-            tmp = strdup("/tmp/B0N3_HEREDOC");
-            heredoc = ft_itoa(this->h_d_index++);
-            tmp = ft_strjoin(tmp, heredoc);
-            head->eof = strdup(token->value);
-            head->output_file = new_file(tmp);
-            free(heredoc);
-            free(tmp);
-            if (head->output_file->open(head->output_file,O_WRONLY | O_TRUNC | O_CREAT, 0644))
-                this->parsing_error = strdup(head->output_file->uri);
-            token->free(token);
-        }
-        else if (!inject_command(head, token))
-            token->free(token);
-        }
-    }
-
-// cat hell | wc -l >> f1 | grep hell.js > f1
 t_node  *handle_operator(t_shell  *this, t_token  *token, t_node *head)
 {
 	t_node  *operator;
@@ -397,16 +232,6 @@ t_node *handle_word(t_shell *this, t_token *token ,t_node *head)
 	}
 	return head;
 }
-
-//t_bool check_pipeline_sides(t_shell *this, t_node *_pipe) {
-//    t_bool ret;
-//
-//    ret = !(_pipe->right == NULL || _pipe->left == NULL);
-//    if (!ret  && _pipe->right)
-//
-//    return (ret);
-//}
-
 
 t_bool check_syntax(t_shell  *this, t_node *pointer)
 {
