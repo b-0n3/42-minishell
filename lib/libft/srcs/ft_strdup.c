@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_strdup.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aait-ham <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: am-khant <am-khant@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/10 03:53:35 by aait-ham          #+#    #+#             */
-/*   Updated: 2019/10/15 19:15:10 by aait-ham         ###   ########.fr       */
+/*   Updated: 2021/12/07 05:23:23 by am-khant         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 char	*ft_strcpy(char *dest, char *src)
 {
-	int i;
+	int	i;
 
 	i = 0;
 	while (src[i] != '\0')
@@ -28,7 +28,7 @@ char	*ft_strcpy(char *dest, char *src)
 
 char	*ft_strdup(const char *src)
 {
-	const char *dest;
+	const char	*dest;
 
 	dest = malloc(sizeof(char) * (ft_strlen(src) + 1));
 	if (dest == 0)
