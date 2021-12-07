@@ -139,4 +139,3 @@ void				*do_on_next_p_(t_array_iterator *this,
 						void *(*f)(void *, void *, void *), void *p_item);
 
 #endif
-

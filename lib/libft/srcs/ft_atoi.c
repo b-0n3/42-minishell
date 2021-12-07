@@ -14,13 +14,13 @@
 
 static int	ft_isspace(char c)
 {
-	if (c == '\n' || c == '\f' || c == ' ' ||
-			c == '\r' || c == '\v' || c == '\t')
+	if (c == '\n' || c == '\f' || c == ' '
+		||	c == '\r' || c == '\v' || c == '\t')
 		return (1);
 	return (0);
 }
 
-int			ft_atoi(const char *str)
+int	ft_atoi(const char *str)
 {
 	int				i;
 	int				n;
@@ -37,12 +37,6 @@ int			ft_atoi(const char *str)
 			signe = -1;
 	}
 	while (str[i] >= '0' && (str[i] <= '9') && str[i] != '\0')
-	{
-		if (((unsigned long)n > 9223372036854775807 / 10) ||
-				(((unsigned long)n == 9223372036854775807 / 10) &&
-				((unsigned long)n % 10) > 7))
-			return ((signe > 0 ? -1 : 0));
 		n = n * 10 + (*(str + (i++)) - '0');
-	}
 	return (n * signe);
 }
