@@ -3,18 +3,18 @@
 /*                                                        :::      ::::::::   */
 /*   exec_init_fds.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aait-ham <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: am-khant <am-khant@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/07 02:44:20 by aait-ham          #+#    #+#             */
-/*   Updated: 2021/12/07 02:44:22 by aait-ham         ###   ########.fr       */
+/*   Updated: 2021/12/07 03:11:01 by am-khant         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
-void link_left_pipe(t_node *node)
+void	link_left_pipe(t_node *node)
 {
-	t_node *tmp;
+	t_node	*tmp;
 
 	close(node->parent->p[0]);
 	dup2(node->parent->p[1], STDOUT_FILENO);
@@ -46,7 +46,7 @@ void	link_here_doc(t_node *node)
 			close(node->parent->parent->p[1]);
 		}
 		else if (node->parent->parent->op_type == redirection
-				|| node->parent->parent->op_type == append)
+			|| node->parent->parent->op_type == append)
 		{
 			tmp = node->parent->parent;
 			while (tmp->parent != NULL && tmp->parent->need_a_file(tmp->parent))
@@ -56,6 +56,7 @@ void	link_here_doc(t_node *node)
 		}
 	}
 }
+
 void	close_for_right(t_node *node)
 {
 	t_node	*tmp;
@@ -64,7 +65,7 @@ void	close_for_right(t_node *node)
 	dup2(node->parent->p[0], STDIN_FILENO);
 	close(node->parent->p[0]);
 	if (node->parent->parent != NULL
-			&& node->parent->parent->op_type == pipeline)
+		&& node->parent->parent->op_type == pipeline)
 	{
 		close(node->parent->parent->p[0]);
 		dup2(node->parent->parent->p[1], STDOUT_FILENO);
@@ -81,12 +82,14 @@ void	close_for_right(t_node *node)
 		}
 	}
 }
+
 void	link_redirection(t_node *node)
 {
 	t_node	*tmp;
 
 	tmp = node->parent;
-	while (tmp->parent != NULL && tmp->parent->need_a_file(tmp->parent)) {
+	while (tmp->parent != NULL && tmp->parent->need_a_file(tmp->parent))
+	{
 		tmp = tmp->parent;
 	}
 	if (tmp->parent != NULL && tmp->parent->op_type == pipeline)
@@ -98,6 +101,7 @@ void	link_redirection(t_node *node)
 	dup2(tmp->output_file->fd, STDOUT_FILENO);
 	close(tmp->output_file->fd);
 }
+
 void	init_fds(t_node *node)
 {
 	t_node	*tmp;
