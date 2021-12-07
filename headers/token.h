@@ -87,7 +87,8 @@ typedef struct s_file
 	t_string	uri;
 	int			fd;
 	int			exception;
-	t_bool		(*open)(struct s_file *this, int mode, int perms);
+	int			(*open)(struct s_file *this,
+			int mode, int perms);
 	void		(*free)(struct s_file *this);
 }	t_file;
 
